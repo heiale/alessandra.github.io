@@ -146,3 +146,30 @@
     observer.observe(block);
   });
 })();
+
+// Header on scroll: past the first part of the page, scrolling down hides the bar and
+// scrolling up shows it again. It always stays visible near the top, while the mobile
+// menu is open and while a link inside it has keyboard focus.
+(function () {
+  var header = document.querySelector('.site-header');
+  if (!header) return;
+  var menu = document.getElementById('menu');
+  var SHOW_ABOVE = 200;  // px from the top where the bar is always shown
+  var DELTA = 6;         // ignore tiny movements, e.g. trackpad jitter
+  var last = window.scrollY;
+  var ticking = false;
+
+  function update() {
+    ticking = false;
+    var y = window.scrollY;
+    if (Math.abs(y - last) < DELTA) return;
+    var keep = y < SHOW_ABOVE || (menu && !menu.hidden) || header.contains(document.activeElement);
+    header.classList.toggle('is-hidden', !keep && y > last);
+    last = y;
+  }
+
+  window.addEventListener('scroll', function () {
+    if (!ticking) { ticking = true; requestAnimationFrame(update); }
+  }, { passive: true });
+  header.addEventListener('focusin', function () { header.classList.remove('is-hidden'); });
+})();

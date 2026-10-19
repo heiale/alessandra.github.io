@@ -103,6 +103,10 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
   font-weight: 500;
   white-space: nowrap;
 }
+/* The bar slides away while scrolling down and comes back when scrolling up (see main.js). */
+.site-header { transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+.site-header.is-hidden { transform: translateY(-100%); }
+@media (prefers-reduced-motion: reduce) { .site-header { transition: none; } }
 /* Browsers without backdrop blur get a more opaque bar so the text stays readable. */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .site-header { background: rgba(255, 255, 255, 0.92); }
