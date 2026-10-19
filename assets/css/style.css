@@ -586,10 +586,9 @@ main { margin-top: calc(-1 * var(--header-h)); }
 .related-list { list-style: none; margin: 4.45vw var(--margin) 0; padding: 0; display: flex; flex-direction: column; gap: 1.33vw; }
 .related-row.grid { padding: 0.15em 0; transition: background-color 0.15s ease; }
 .related-text { grid-column: 5 / -1; display: flex; align-items: baseline; flex-wrap: wrap; column-gap: 0.35em; font-size: clamp(18px, 1.875vw, 40px); font-weight: 500; line-height: 1.2; }
-.related-row .related-name { color: var(--grey); transition: color 0.15s ease; }
+.related-row .related-name { color: var(--ink); }
 .related-row .related-short { color: var(--grey); }
 .related-row .related-arrow { color: var(--ink); }
-.related-row:hover .related-name, .related-row:focus-visible .related-name { color: var(--ink); }
 .related-arrow { display: inline-block; width: 0; overflow: hidden; opacity: 0; transition: width 0.15s ease, opacity 0.15s ease; }
 .related-row:hover, .related-row:focus-visible { background: #e8e8e8; }
 .related-row:hover .related-arrow, .related-row:focus-visible .related-arrow { width: 1.1em; opacity: 1; }
