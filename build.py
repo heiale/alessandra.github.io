@@ -568,6 +568,17 @@ RELATED = {
 }
 
 # One-sentence description for each project card on the Projects page.
+# Categories on the Projects page, from one fixed vocabulary so projects can be compared:
+# UX/UI Design, Research, Service Design, Interaction Design, Visual Design.
+CATEGORIES = {
+    "logitech": ["UX/UI Design", "Research"],
+    "lego-replay": ["Service Design", "UX/UI Design", "Research"],
+    "threads-of-silk": ["Interaction Design", "UX/UI Design", "Research"],
+    "opta": ["Interaction Design", "UX/UI Design", "Research"],
+    "mediant": ["Service Design", "UX/UI Design", "Research"],
+    "apopsi": ["Visual Design", "UX/UI Design", "Research"],
+}
+
 DESCRIPTIONS = {
     "lego-replay": "A circular rental and trade-in service that extends the life of LEGO sets, online, at home and in-store.",
     "opta": "An HMI for a shared city car, designed with Italdesign, using physical controls and voice to reduce distraction.",
@@ -808,7 +819,7 @@ def build_projects():
         f'<a class="proj-card" href="{slug}.html" data-pixel-hover>{media(FIGMA_MEDIA[slug]["card"], "", "16 / 10")}'
         f'<span class="proj-text"><span class="proj-name">{escape(PROJECTS[slug]["name"])}</span>'
         f'<span class="proj-desc">{escape(DESCRIPTIONS[slug])}</span>'
-        f'<span class="proj-tags">{"".join(f"<span>{escape(t)}</span>" for t in PROJECTS[slug]["tags"].split(", ")[:3])}</span></span></a>'
+        f'<span class="proj-tags">{"".join(f"<span>{escape(t)}</span>" for t in CATEGORIES[slug])}</span></span></a>'
         for slug in PROJECT_ORDER
     )
     body = f"""<section class="page-head">
