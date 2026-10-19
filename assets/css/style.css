@@ -13,11 +13,12 @@
   --panel: rgba(239, 239, 239, 0.32);
   --video: #ebfbff;
 
-  /* Typefaces, as in the Figma design kit (Suisse), with system fallbacks */
-  --f-intl: "Suisse Int'l", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Inter", "Helvetica Neue", Arial, sans-serif;
-  --f-cond: "Suisse Int'l Condensed", "Suisse Int'l", "SF Pro Display", -apple-system, BlinkMacSystemFont, "Inter", Arial, sans-serif;
-  --f-mono: "Suisse Int'l Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace;
-  --f-screen: "Suisse Screen", "SF Pro Text", -apple-system, BlinkMacSystemFont, "Inter", "Helvetica Neue", Arial, sans-serif;
+  /* Helvetica Neue is built into Apple devices, so no font files are served;
+     Windows and Android show Arial, which has the same proportions. */
+  --f-intl: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --f-cond: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --f-mono: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+  --f-screen: "Helvetica Neue", Helvetica, Arial, sans-serif;
 
   /* Grid (Figma: 50px side margins on a 1280px frame) */
   --margin: clamp(20px, 3.906vw, 72px);
@@ -45,8 +46,6 @@ html { -webkit-text-size-adjust: 100%; }
 
 body {
   margin: 0;
-  /* SF Pro Display is the design typeface. It ships with Apple devices only,
-     so other systems fall back to Inter. */
   font-family: var(--f-screen);
   font-size: var(--fs-body);
   line-height: 1.2;
