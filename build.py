@@ -820,7 +820,7 @@ def build_projects():
         for slug in PROJECT_ORDER
     )
     body = f"""<section class="page-head">
-  <h1 class="page-title">Selected projects</h1>
+  <h1 class="page-title">Index</h1>
 </section>
 <section class="proj-grid page-end">{cards}</section>"""
     page("index.html", f"{NAME} — Selected projects", body, "Selected projects by Alessandra Annoni, Interaction and Visual Designer.")
