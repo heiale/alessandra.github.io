@@ -601,7 +601,10 @@ main { margin-top: calc(-1 * var(--header-h)); }
 .proj-text { display: flex; flex-direction: column; gap: 0.78vw; }
 .proj-card .proj-name { font-size: clamp(17px, 1.4vw, 30px); font-weight: 500; line-height: 1.2; }
 .proj-card .proj-desc { margin-top: 0; max-width: 32em; font-size: clamp(14px, 1.016vw, 20px); }
-.proj-card .proj-tags { margin-top: 0.2vw; }
+/* Tags sit at the bottom of every card, so they line up across a row whatever the text above. */
+.proj-text { flex: 1; }
+.proj-card .proj-tags { margin-top: auto; padding-top: 0.4vw; column-gap: 0; }
+.proj-card .proj-tags span + span::before { content: "•"; margin: 0 0.6em; }
 
 /* About, as in Figma */
 .cv-sec--intro { padding-top: calc(var(--header-h) + 9.06vw); }
