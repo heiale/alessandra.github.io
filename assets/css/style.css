@@ -596,12 +596,11 @@ main { margin-top: calc(-1 * var(--header-h)); }
 
 /* Projects page: title and a two-column grid of cards */
 .page-head { padding: calc(var(--header-h) + 9.06vw) var(--margin) 0; }
-.proj-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3.2vw; padding: 6.33vw var(--margin) var(--gap-l); }
-.proj-card { display: flex; flex-direction: column; gap: 1.5625vw; }
-.proj-card .media { aspect-ratio: 570 / 543; }
+.proj-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4.2vw 2vw; padding: 6.33vw var(--margin) var(--gap-l); }
+.proj-card { display: flex; flex-direction: column; gap: 1.1vw; }
 .proj-text { display: flex; flex-direction: column; gap: 0.78vw; }
-.proj-card .proj-name { font-size: clamp(18px, 1.875vw, 40px); font-weight: 500; line-height: 1.2; }
-.proj-card .proj-desc { margin-top: 0; max-width: 32em; }
+.proj-card .proj-name { font-size: clamp(17px, 1.4vw, 30px); font-weight: 500; line-height: 1.2; }
+.proj-card .proj-desc { margin-top: 0; max-width: 32em; font-size: clamp(14px, 1.016vw, 20px); }
 .proj-card .proj-tags { margin-top: 0.2vw; }
 
 /* About, as in Figma */
@@ -623,6 +622,7 @@ main { margin-top: calc(-1 * var(--header-h)); }
 .site-footer .f-bottom { display: block; padding: 0; font-size: clamp(11px, 0.9375vw, 18px); font-weight: 300; }
 
 @media (max-width: 1024px) {
+  .proj-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--gap-m) var(--gutter); }
   .flow--5, .flow--6 { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: var(--gutter); }
   .flow--5 li::after, .flow--6 li::after { display: none; }
   .grid.case-facts--6 { grid-template-columns: repeat(12, minmax(0, 1fr)); }

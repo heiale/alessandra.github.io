@@ -583,7 +583,7 @@ DESCRIPTIONS = {
 # share of the column when the image is narrower than it, ("pair", file, file, ratio[, overlay]) or
 # ("video", id) for a Vimeo video. An .mp4 file is an animation from Figma, played like a GIF; an overlay
 # is an .mp4 placed on the second image of a pair (left, top, width, height in percent, corner radius).
-# "card" is the image on the Projects page.
+# "card" is the image on the Projects page, cropped to a landscape box.
 # How each animation is cropped in Figma: the visible part of the video, as (width, left, height, top)
 # in fractions of the video.
 VIDEO_CROPS = {
@@ -599,7 +599,7 @@ FIGMA_MEDIA = {
         "opening": "logitech-cover.jpg",
     },
     "lego-replay": {
-        "card": "card-lego-replay.jpg",
+        "card": "lego-replay-opening.jpg",
         "opening": "lego-replay-opening.jpg",
         "Overview": [("img", "lego-replay-overview.jpg", "837 / 477")],
         "Research": [("img", "lego-replay-journey.jpg", "837 / 319",
@@ -610,7 +610,7 @@ FIGMA_MEDIA = {
         "Limits and next steps": [("img", "lego-replay-website.mp4", "772 / 470", None, 772 / 837)],
     },
     "threads-of-silk": {
-        "card": "card-threads-of-silk.jpg",
+        "card": "threads-of-silk-overview.jpg",
         "opening": "threads-of-silk-opening.mp4",
         "Overview": [("img", "threads-of-silk-overview.jpg", "837 / 558")],
         "Concept": [("pair", "threads-of-silk-pair-1.jpg", "threads-of-silk-pair-2.jpg", "403 / 440")],
@@ -618,7 +618,7 @@ FIGMA_MEDIA = {
         "Key design decisions": [("video", "1011555669")],
     },
     "opta": {
-        "card": "card-opta.jpg",
+        "card": "opta-opening.jpg",
         "opening": "opta-opening.jpg",
         "Overview": [("img", "opta-overview.jpg", "837 / 477")],
         "Starting point": [("pair", "opta-pair-1.jpg", "opta-pair-2.jpg", "410 / 448")],
@@ -626,14 +626,14 @@ FIGMA_MEDIA = {
         "Key design decisions": [("video", "1076657703")],
     },
     "mediant": {
-        "card": "card-mediant.jpg",
+        "card": "mediant-opening.jpg",
         "opening": "mediant-opening.jpg",
         "Starting point": [("img", "mediant-research.jpg", "837 / 706")],
         "Outcome": [("img", "mediant-outcome.jpg", "837 / 540")],
         "Key design decisions": [("img", "mediant-decisions.jpg", "837 / 766")],
     },
     "apopsi": {
-        "card": "card-apopsi.jpg",
+        "card": "apopsi-opening.jpg",
         "opening": "apopsi-opening.jpg",
         "Overview": [("img", "apopsi-overview.jpg", "837 / 477")],
         "Starting point": [("pair", "apopsi-pair-1.jpg", "apopsi-pair-2.jpg", "410 / 448")],
@@ -805,7 +805,7 @@ def build_about():
 
 def build_projects():
     cards = "".join(
-        f'<a class="proj-card" href="{slug}.html" data-pixel-hover>{media(FIGMA_MEDIA[slug]["card"], "", "570 / 543")}'
+        f'<a class="proj-card" href="{slug}.html" data-pixel-hover>{media(FIGMA_MEDIA[slug]["card"], "", "16 / 10")}'
         f'<span class="proj-text"><span class="proj-name">{escape(PROJECTS[slug]["name"])}</span>'
         f'<span class="proj-desc">{escape(DESCRIPTIONS[slug])}</span>'
         f'<span class="proj-tags">{"".join(f"<span>{escape(t)}</span>" for t in PROJECTS[slug]["tags"].split(", ")[:3])}</span></span></a>'
