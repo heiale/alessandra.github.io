@@ -1,0 +1,18 @@
+# macOS
+.DS_Store
+
+# Local backups of earlier versions
+_versions/
+
+# Local editor and preview settings
+.claude/
+
+# Personal documents not used by the site
+assets/cv/
+
+# Secrets and dependencies (none today, kept out by default)
+.env
+.env.*
+node_modules/
+__pycache__/
+*.pyc
