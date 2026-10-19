@@ -4,6 +4,22 @@
    labels in column 1 and content in the right half (column 7 onwards).
    The previous Figma-exact version is saved in _versions/figma-exact. */
 
+/* DM Mono (SIL Open Font License), served from the site, for the small uppercase labels. */
+@font-face {
+  font-family: "DM Mono";
+  src: url("../fonts/dm-mono-400.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "DM Mono";
+  src: url("../fonts/dm-mono-500.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --orange: #ff5e00;
   --ink: #000;
@@ -17,7 +33,7 @@
      Windows and Android show Arial, which has the same proportions. */
   --f-intl: "Helvetica Neue", Helvetica, Arial, sans-serif;
   --f-cond: "Helvetica Neue", Helvetica, Arial, sans-serif;
-  --f-mono: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+  --f-mono: "DM Mono", "SF Mono", ui-monospace, Menlo, Consolas, monospace;
   --f-screen: "Helvetica Neue", Helvetica, Arial, sans-serif;
 
   /* Grid (Figma: 50px side margins on a 1280px frame) */
