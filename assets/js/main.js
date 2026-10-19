@@ -23,7 +23,9 @@
 })();
 
 // Letter-shuffle hover for the top bar: the letters of each word are shuffled
-// for a few frames, then settle back to the original text.
+// for a few frames, then settle back to the original text. The shuffled letters are
+// only drawn on top (CSS ::after); the link text itself never changes, so a click
+// always reaches the link, even while the letters are moving.
 (function () {
   var items = document.querySelectorAll('[data-shuffle]');
   if (!items.length) return;
@@ -46,29 +48,22 @@
     var original = el.textContent;
     var timer = null;
     var target = el.closest('a') || el;
-    // Screen readers keep the real text while the letters move.
-    if (!target.hasAttribute('aria-label')) target.setAttribute('aria-label', original);
 
     function stop() {
       clearInterval(timer);
       timer = null;
-      el.textContent = original;
-      el.style.width = '';
+      el.classList.remove('is-shuffling');
+      el.removeAttribute('data-shuffled');
     }
-
-    // Pressing the link puts the real text back at once, so the click is never lost
-    // while the letters are changing (Safari can drop it otherwise).
-    target.addEventListener('pointerdown', function () { if (timer) stop(); });
 
     target.addEventListener('mouseenter', function () {
       if (timer) return;
-      // Hold the width so neighbours do not move while the letters change.
-      el.style.width = el.getBoundingClientRect().width + 'px';
       var frame = 0;
+      el.classList.add('is-shuffling');
       timer = setInterval(function () {
         frame++;
         if (frame >= FRAMES) { stop(); return; }
-        el.textContent = original.split(' ').map(shuffleWord).join(' ');
+        el.setAttribute('data-shuffled', original.split(' ').map(shuffleWord).join(' '));
       }, FRAME_MS);
     });
   });

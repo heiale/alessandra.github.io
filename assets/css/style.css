@@ -125,7 +125,19 @@ main { margin-top: calc(-1 * var(--header-h)); }
 .see-all:hover { opacity: 0.6; }
 
 /* Letter-shuffle hover (see main.js). Kerning is off so shuffled letters keep their widths. */
-[data-shuffle] { display: inline-block; font-kerning: none; }
+[data-shuffle] { display: inline-block; position: relative; font-kerning: none; }
+/* While shuffling, the real letters are hidden (the underline stays) and the shuffled
+   ones are drawn on top; the overlay ignores the mouse, so clicks go to the link. */
+[data-shuffle].is-shuffling[data-shuffled] { -webkit-text-fill-color: transparent; }
+[data-shuffle].is-shuffling[data-shuffled]::after {
+  content: attr(data-shuffled);
+  position: absolute;
+  inset: 0;
+  padding: inherit;
+  white-space: nowrap;
+  -webkit-text-fill-color: currentColor;
+  pointer-events: none;
+}
 
 .menu-toggle { display: none; grid-column: 7 / -1; justify-self: end; font-weight: 500; }
 
