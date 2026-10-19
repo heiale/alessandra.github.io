@@ -56,6 +56,10 @@
       el.style.width = '';
     }
 
+    // Pressing the link puts the real text back at once, so the click is never lost
+    // while the letters are changing (Safari can drop it otherwise).
+    target.addEventListener('pointerdown', function () { if (timer) stop(); });
+
     target.addEventListener('mouseenter', function () {
       if (timer) return;
       // Hold the width so neighbours do not move while the letters change.

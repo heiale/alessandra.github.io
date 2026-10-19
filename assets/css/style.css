@@ -113,6 +113,9 @@ main { margin-top: calc(-1 * var(--header-h)); }
 
 .nav { grid-column: 7 / -1; display: flex; justify-content: space-between; align-items: baseline; }
 .nav-item:not(:last-child)::after { content: ","; margin-right: 0.28em; }
+/* Header links are clickable over the full height of the bar, not only on the letters;
+   the negative margin keeps the layout where it was. */
+.site-header a { display: inline-block; padding: 0.9em 0.15em; margin: -0.9em -0.15em; }
 /* Only the section you are in is underlined; hovering does not underline. */
 .nav a[aria-current] {
   text-decoration: underline;
