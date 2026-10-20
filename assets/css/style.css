@@ -728,3 +728,25 @@ main { margin-top: calc(-1 * var(--header-h)); }
 @media (prefers-reduced-motion: reduce) {
   .rv { opacity: 1; transform: none; transition: none; }
 }
+
+/* Desktop: text grows more slowly with the window and stops sooner, so it reads at a
+   comfortable size on laptop and desktop screens. Phones and tablets keep the sizes above. */
+@media (min-width: 1025px) {
+  :root {
+    --fs-display: clamp(44px, 6.2vw, 112px);
+    --fs-statement: clamp(28px, 3vw, 54px);
+    --fs-lead: clamp(24px, 2.15vw, 38px);
+    --fs-story: clamp(16px, 1.15vw, 20px);
+    --fs-body: clamp(18px, 1.45vw, 26px);
+    --fs-small: clamp(13px, 0.92vw, 16px);
+  }
+  .case-title, .page-title { font-size: clamp(48px, 6.6vw, 120px); }
+  .fact dt { font-size: clamp(11px, 0.78vw, 13px); }
+  .fact dd { font-size: clamp(12px, 0.92vw, 16px); }
+  .stats-r .stat-n { font-size: clamp(28px, 2.6vw, 46px); }
+  .related-h, .related-text { font-size: clamp(18px, 1.5vw, 27px); }
+  .proj-card .proj-name { font-size: clamp(16px, 1.2vw, 21px); }
+  .proj-card .proj-desc { font-size: clamp(14px, 0.92vw, 16px); }
+  .cv-activity, .site-footer .f-contact { font-size: clamp(14px, 1.05vw, 18px); }
+  .site-footer .f-bottom { font-size: clamp(11px, 0.8vw, 14px); }
+}
