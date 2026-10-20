@@ -739,6 +739,8 @@ main { margin-top: calc(-1 * var(--header-h)); }
     --fs-story: clamp(16px, 1.15vw, 20px);
     --fs-body: clamp(18px, 1.45vw, 26px);
     --fs-small: clamp(13px, 0.92vw, 16px);
+    /* Wider side margins on computer screens. */
+    --margin: clamp(56px, 5.5vw, 120px);
   }
   .case-title, .page-title { font-size: clamp(48px, 6.6vw, 120px); }
   .fact dt { font-size: clamp(11px, 0.78vw, 13px); }
