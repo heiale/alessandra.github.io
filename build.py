@@ -686,10 +686,9 @@ def page(filename, title, body, description):
         for label, href in NAV
     )
     plain_links = "".join(f'<a href="{href}">{label}</a>' for label, href in NAV)
-    # Link previews (WhatsApp, LinkedIn, Slack...): a project shows its own image, other pages the
-    # general one; the text is the first sentence of the description.
-    slug = filename[:-5]
-    share_image = f"assets/share/{slug}.jpg" if slug in PROJECTS else "assets/share/share.jpg"
+    # Link previews (WhatsApp, LinkedIn, Slack...): one image for the whole site; the text is the
+    # first sentence of the page description.
+    share_image = "assets/share/share.jpg"
     share_text = description.split(". ")[0].rstrip(".") + "."
     html = f"""<!doctype html>
 <html lang="en">
