@@ -833,7 +833,8 @@ def build_projects():
   <h1 class="page-title">Index</h1>
 </section>
 <section class="proj-grid page-end">{cards}</section>"""
-    page("index.html", f"{NAME} — Selected projects", body, "Selected projects by Alessandra Annoni, Interaction and Visual Designer.")
+    page("index.html", f"{NAME} • UX/UI & Product Designer", body,
+         "A collection of digital experiences shaped by curiosity, creativity, and human-centered design.")
 
 
 def split_lead(text):
