@@ -528,8 +528,6 @@ CHAPTER_VISUALS = {
         ]},
     },
     "mediant": {
-        "Starting point": {"figures": [("5", "Scenarios generated"), ("1", "How Might We selected"),
-                                       ("2", "Coordinated touchpoints")]},
         "Outcome": {"steps": [
             ("Patient · app", "Keeps health data up to date and books visits."),
             ("Mediant · AI core", "Organizes data sources and turns voice notes into documentation."),
