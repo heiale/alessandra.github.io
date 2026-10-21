@@ -8,6 +8,7 @@ ROOT = Path(__file__).parent
 VERSION = int(time.time())  # appended to the CSS/JS links so browsers load the latest build
 
 NAME = "Alessandra Annoni"
+SITE_URL = "https://www.alessandraannoni.it/"  # used for link previews, which need full addresses
 EMAIL = "alessandra@annoni.com"
 LINKEDIN = "https://www.linkedin.com/in/alessandra-annoni-1a3aa2204/"
 
@@ -685,6 +686,11 @@ def page(filename, title, body, description):
         for label, href in NAV
     )
     plain_links = "".join(f'<a href="{href}">{label}</a>' for label, href in NAV)
+    # Link previews (WhatsApp, LinkedIn, Slack...): a project shows its own image, other pages the
+    # general one; the text is the first sentence of the description.
+    slug = filename[:-5]
+    share_image = f"assets/share/{slug}.jpg" if slug in PROJECTS else "assets/share/share.jpg"
+    share_text = description.split(". ")[0].rstrip(".") + "."
     html = f"""<!doctype html>
 <html lang="en">
 <head>
@@ -692,6 +698,15 @@ def page(filename, title, body, description):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{escape(title)}</title>
 <meta name="description" content="{escape(description)}">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="{NAME}">
+<meta property="og:title" content="{escape(title)}">
+<meta property="og:description" content="{escape(share_text)}">
+<meta property="og:url" content="{SITE_URL}{"" if filename == "index.html" else filename}">
+<meta property="og:image" content="{SITE_URL}{share_image}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="assets/icons/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="assets/icons/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
@@ -804,7 +819,7 @@ def build_about():
   </div>
 </section>
 {cv_sections()}"""
-    page("about.html", f"About — {NAME}", body, "About Alessandra Annoni.")
+    page("about.html", f"About — {NAME}", body, "Interaction and Visual Designer from Milan, with international experience across UX/UI, digital products and immersive technologies.")
 
 
 def build_projects():
