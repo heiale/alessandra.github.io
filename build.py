@@ -633,9 +633,8 @@ FIGMA_MEDIA = {
     "mediant": {
         "card": "mediant-opening.jpg",
         "opening": "mediant-opening.jpg",
-        "Starting point": [("img", "mediant-research.jpg", "837 / 706")],
+        "Starting point": [("pair", "mediant-pair-1.jpg", "mediant-pair-2.jpg", "410 / 448")],
         "Outcome": [("img", "mediant-outcome.jpg", "837 / 540")],
-        "Key design decisions": [("img", "mediant-decisions.jpg", "837 / 766")],
     },
     "apopsi": {
         "card": "apopsi-opening.jpg",
