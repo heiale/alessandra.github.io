@@ -527,10 +527,6 @@ CHAPTER_VISUALS = {
             ("Recirculate", "Back in the catalogue; incomplete sets become spare parts."),
         ]},
     },
-    "opta": {
-        "Outcome": {"steps": [("Request", ""), ("Recognize", ""), ("Welcome", ""), ("Mode", ""),
-                              ("Adaptation", ""), ("Advice", "")]},
-    },
     "mediant": {
         "Starting point": {"figures": [("5", "Scenarios generated"), ("1", "How Might We selected"),
                                        ("2", "Coordinated touchpoints")]},
