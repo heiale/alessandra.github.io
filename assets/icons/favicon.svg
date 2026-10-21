@@ -1,4 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <rect width="64" height="64" rx="12" fill="#ff5e00"/>
-  <text x="32" y="44" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="30" font-weight="700" letter-spacing="-1.5" fill="#fff">AA</text>
+  <style>
+    text { fill: #000; }
+    /* Dark browser tabs: white letters so the icon stays visible. */
+    @media (prefers-color-scheme: dark) { text { fill: #fff; } }
+  </style>
+  <text x="32" y="50" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="56" font-weight="400" letter-spacing="-2">A.</text>
 </svg>
