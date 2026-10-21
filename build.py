@@ -818,7 +818,7 @@ def build_about():
   </div>
 </section>
 {cv_sections()}"""
-    page("about.html", f"About — {NAME}", body, "Interaction and Visual Designer from Milan, with international experience across UX/UI, digital products and immersive technologies.")
+    page("about.html", f"About · {NAME}", body, "Interaction and Visual Designer from Milan, with international experience across UX/UI, digital products and immersive technologies.")
 
 
 def build_projects():
@@ -833,7 +833,7 @@ def build_projects():
   <h1 class="page-title">Index</h1>
 </section>
 <section class="proj-grid page-end">{cards}</section>"""
-    page("index.html", f"{NAME} • UX/UI & Product Designer", body,
+    page("index.html", f"{NAME} · UX/UI & Product Designer", body,
          "A collection of digital experiences shaped by curiosity, creativity, and human-centered design.")
 
 
@@ -990,7 +990,7 @@ def build_case(slug):
   <div class="grid"><h2 class="related-h m12">Related Projects</h2></div>
   <ul class="related-list">{related_rows}</ul>
 </section>"""
-    page(f"{slug}.html", f'{p["name"]} — {NAME}', body, p["intro"].replace("\n\n", " "))
+    page(f"{slug}.html", f'{p["name"]} · {NAME}', body, p["intro"].replace("\n\n", " "))
 
 
 if __name__ == "__main__":
