@@ -9,7 +9,8 @@ ROOT = Path(__file__).parent
 VERSION = int(time.time())  # appended to the CSS/JS links so browsers load the latest build
 
 NAME = "Alessandra Annoni"
-SITE_URL = "https://www.alessandraannoni.it/"  # used for link previews, which need full addresses
+SITE_URL = "https://www.alessandraannoni.it/"
+CF_ANALYTICS_TOKEN = "241b9e1f7a294751af2274a98c447858"  # Cloudflare Web Analytics (public, not a secret)  # used for link previews, which need full addresses
 EMAIL = "alessandra@annoni.com"
 LINKEDIN = "https://www.linkedin.com/in/alessandra-annoni-1a3aa2204/"
 
@@ -711,6 +712,8 @@ def page(filename, title, body, description):
 <link rel="icon" href="assets/icons/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
 <link rel="stylesheet" href="assets/css/style.css?v={VERSION}">
+<!-- Cloudflare Web Analytics: cookieless visit statistics -->
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{{"token": "{CF_ANALYTICS_TOKEN}"}}'></script>
 </head>
 <body>
 <header class="site-header">
