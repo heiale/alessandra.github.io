@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <style>
+    text { fill: #000; }
+    /* Dark browser tabs: white letters so the icon stays visible. */
+    @media (prefers-color-scheme: dark) { text { fill: #fff; } }
+  </style>
+  <text x="32" y="50" text-anchor="middle" font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="56" font-weight="400" letter-spacing="-2">A.</text>
+</svg>

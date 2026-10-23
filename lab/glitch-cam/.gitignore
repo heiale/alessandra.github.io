@@ -1,0 +1,5 @@
+node_modules/
+dist/
+# Generati da scripts/setup-assets.mjs (npm run dev / build li ricrea)
+public/mediapipe/
+public/models/

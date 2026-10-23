@@ -616,6 +616,7 @@ main { margin-top: calc(-1 * var(--header-h)); }
 
 /* Projects page: title and a two-column grid of cards */
 .page-head { padding: calc(var(--header-h) + 9.06vw) var(--margin) 0; }
+.lab-lede { margin-top: var(--gap-s); max-width: 34em; font-size: var(--fs-story); line-height: 1.4; color: var(--grey-link); }
 .proj-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4.2vw 2vw; padding: clamp(40px, 8.5vw, 160px) var(--margin) var(--gap-l); }
 .proj-card { display: flex; flex-direction: column; gap: 1.1vw; }
 .proj-text { display: flex; flex-direction: column; gap: 0.78vw; }

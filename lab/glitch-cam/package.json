@@ -1,0 +1,24 @@
+{
+  "name": "glitch-cam",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "setup-assets": "node scripts/setup-assets.mjs",
+    "predev": "npm run setup-assets",
+    "dev": "vite",
+    "prebuild": "npm run setup-assets",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@mediapipe/tasks-vision": "^1.1.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.13.0",
+    "globals": "^17.13.0",
+    "vite": "^8.3.5"
+  }
+}

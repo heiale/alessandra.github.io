@@ -12,7 +12,7 @@ SITE_URL = "https://www.alessandraannoni.it/"  # used for link previews, which n
 EMAIL = "alessandra@annoni.com"
 LINKEDIN = "https://www.linkedin.com/in/alessandra-annoni-1a3aa2204/"
 
-NAV = [("About", "about.html"), ("Projects", "index.html")]
+NAV = [("About", "about.html"), ("Projects", "index.html"), ("Laboratory", "laboratory.html")]
 
 PROJECTS = {
     "lego-replay": {
@@ -821,6 +821,37 @@ def build_about():
     page("about.html", f"About · {NAME}", body, "Interaction and Visual Designer from Milan, with international experience across UX/UI, digital products and immersive technologies.")
 
 
+# Laboratory: small interactive experiments. Each one is a separate web app published in
+# laboratory/<slug>/ (Glitch Cam is built from lab/glitch-cam with `npm run build`).
+EXPERIMENTS = [
+    {
+        "slug": "glitch-cam",
+        "name": "Glitch Cam",
+        "image": "lab-glitch-cam.svg",
+        "desc": "A real-time webcam glitch: as you move, your image breaks into pieces from different moments, "
+                "and your open hand pushes the distortion to the max.",
+        "tags": ["WebGL", "Computer vision", "Interaction"],
+    },
+]
+
+
+def build_laboratory():
+    cards = "".join(
+        f'<a class="proj-card" href="laboratory/{e["slug"]}/" data-pixel-hover>{media(e["image"], "", "16 / 10")}'
+        f'<span class="proj-text"><span class="proj-name">{escape(e["name"])}</span>'
+        f'<span class="proj-desc">{escape(e["desc"])}</span>'
+        f'<span class="proj-tags">{"".join(f"<span>{escape(t)}</span>" for t in e["tags"])}</span></span></a>'
+        for e in EXPERIMENTS
+    )
+    body = f"""<section class="page-head">
+  <h1 class="page-title">Laboratory</h1>
+  <p class="lab-lede">Small interactive experiments, built to explore how people and technology can play together. They run in your browser: try them yourself.</p>
+</section>
+<section class="proj-grid page-end">{cards}</section>"""
+    page("laboratory.html", f"Laboratory · {NAME}", body,
+         "Small interactive experiments exploring how people and technology can play together.")
+
+
 def build_projects():
     cards = "".join(
         f'<a class="proj-card" href="{slug}.html" data-pixel-hover>{media(FIGMA_MEDIA[slug]["card"], "", "16 / 10")}'
@@ -996,6 +1027,7 @@ def build_case(slug):
 if __name__ == "__main__":
     build_about()
     build_projects()
+    build_laboratory()
     for s in PROJECTS:
         build_case(s)
-    print("Built", 2 + len(PROJECTS), "pages")
+    print("Built", 3 + len(PROJECTS), "pages")

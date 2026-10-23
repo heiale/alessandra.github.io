@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en" class="booting">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Glitch Cam · Alessandra Annoni</title>
+    <link rel="icon" href="../../assets/icons/favicon.svg" type="image/svg+xml" />
+    <!-- Finché l'entrata con glitch non parte (boot.js), la pagina resta bianca come il portfolio. -->
+    <style>
+      html.booting { background: #fff; }
+      /* Sicurezza: se lo script non parte, dopo 2 s la pagina si mostra comunque. */
+      @keyframes boot-failsafe { to { visibility: visible; } }
+      html.booting body { visibility: hidden; animation: boot-failsafe 0s 2s forwards; }
+    </style>
+    <meta name="description" content="Interactive experiment: a real-time glitch on your webcam image, driven by your movement and your hand." />
+  </head>
+  <body>
+    <!-- Il canvas WebGL a schermo intero, e sopra un canvas 2D per i landmark (solo in debug). -->
+    <canvas id="stage" aria-label="Webcam video with glitch effect"></canvas>
+    <canvas id="overlay" aria-hidden="true"></canvas>
+
+    <!-- Schermata iniziale: ui.js ne cambia il contenuto in base allo stato (intro, caricamento, errore). -->
+    <!-- Ritorno alla sezione Laboratory del portfolio. -->
+    <a class="back-link" href="../../laboratory.html" aria-label="Exit to Laboratory">Exit <span aria-hidden="true">✕</span></a>
+
+    <section id="intro" class="intro" aria-live="polite">
+      <div class="intro__box">
+        <p class="intro__eyebrow">Experiment · webcam + gestures</p>
+        <h1 class="intro__title" data-glitch="Glitch Cam">Glitch Cam</h1>
+        <p class="intro__text" id="intro-text">
+          Move and your image breaks into pieces from different moments. Open your hand to push the glitch to
+          the max, close it into a fist to calm it down.
+        </p>
+        <button class="intro__button" id="start-button" type="button">Turn on webcam</button>
+        <p class="intro__privacy">
+          Your video stays on your device: it is processed only in your browser and is never sent or saved
+          anywhere.
+        </p>
+      </div>
+    </section>
+
+    <!-- Suggerimento discreto mentre l'esperienza è attiva. -->
+    <p id="hint" class="hint" hidden>Open and close your hand · <kbd>D</kbd> for the debug panel</p>
+
+    <!-- Pannello debug: costruito da ui.js, mostrato/nascosto con il tasto D. -->
+    <aside id="debug" class="debug" hidden aria-label="Debug panel"></aside>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
