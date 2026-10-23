@@ -618,13 +618,13 @@ main { margin-top: calc(-1 * var(--header-h)); }
 .page-head { padding: calc(var(--header-h) + 9.06vw) var(--margin) 0; }
 .lab-lede { margin-top: var(--gap-s); max-width: 34em; font-size: var(--fs-story); line-height: 1.4; color: var(--grey-link); }
 .proj-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4.2vw 2vw; padding: clamp(40px, 8.5vw, 160px) var(--margin) var(--gap-l); }
-.proj-card { display: flex; flex-direction: column; gap: 1.1vw; }
-.proj-text { display: flex; flex-direction: column; gap: 0.78vw; }
+.proj-card { display: flex; flex-direction: column; gap: clamp(14px, 1.1vw, 22px); }
+.proj-text { display: flex; flex-direction: column; gap: clamp(6px, 0.78vw, 14px); }
 .proj-card .proj-name { font-size: clamp(17px, 1.4vw, 30px); font-weight: 500; line-height: 1.2; }
 .proj-card .proj-desc { margin-top: 0; max-width: 32em; font-size: clamp(14px, 1.016vw, 20px); }
 /* Tags sit at the bottom of every card, so they line up across a row whatever the text above. */
 .proj-text { flex: 1; }
-.proj-card .proj-tags { margin-top: auto; padding-top: 0.4vw; column-gap: 0; }
+.proj-card .proj-tags { margin-top: auto; padding-top: 10px; column-gap: 0; }
 .proj-card .proj-tags span + span::before { content: "•"; margin: 0 0.6em; }
 
 /* About, as in Figma */
