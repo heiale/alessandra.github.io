@@ -120,6 +120,9 @@ Il pannello debug costruisce gli slider da `schema` in automatico.
 - La risoluzione del canvas è limitata a 2× la densità dello schermo.
 - **Telefoni** (`src/quality.js`): webcam a 640×480, effetto disegnato al 75% con densità 1, modelli
   a 15 Hz, memoria del passato ridotta (20 fotogrammi a 480 px invece di 32 a 960 px).
+  Partono anche con blocchi nel tempo più calmi (il telefono in mano si muove sempre un po').
+- Dimensioni di pixel, zone e sezioni sono proporzionali allo schermo (lato corto), non in pixel
+  fissi: su telefono e computer l'effetto ha le stesse proporzioni.
 - **Qualità adattiva** (tutti i dispositivi): se gli FPS restano sotto 24 per più di 1,5 s, la
   qualità scende a gradini, prima la risoluzione dell'effetto e poi la frequenza dei modelli.
   Nel pannello debug, la riga "Quality" mostra profilo, scala e gradini scesi.

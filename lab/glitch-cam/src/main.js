@@ -68,6 +68,11 @@ async function start() {
       adaptive = new AdaptiveQuality({ renderer, getModels: () => [tracker, segmenter] });
       effects = ACTIVE_EFFECTS.map((name) => EFFECTS[name]());
       effects.forEach((effect) => effect.init(renderer));
+      // Valori di partenza specifici del dispositivo (es. più calmi sui telefoni). Prima del pannello
+      // debug, così il suo "Reset" torna a questi valori.
+      for (const effect of [renderer.source, ...effects]) {
+        Object.assign(effect.params, QUALITY.tuning[effect.name] ?? {});
+      }
     } catch (err) {
       console.error(err);
       camera.stop();

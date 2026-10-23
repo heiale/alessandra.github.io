@@ -13,6 +13,10 @@
 // Valori massimi: quanti fotogrammi e a che larghezza li teniamo dipende dal dispositivo
 // (vedi quality.js; sui telefoni molto meno, per non esaurire la memoria della GPU).
 const HISTORY_FRAMES = 32; // ~1 s a 30 fps
+
+// Le dimensioni nei parametri (sezioni e rettangoli) sono frazioni del lato corto dello schermo,
+// moltiplicate per questo valore: calibrato perché su un portatile restino come prima.
+const SIZE_REF = 1.8;
 const MAX_BLOCKS = 16; // deve coincidere con la dimensione degli array nello shader
 
 const COPY_FRAG = /* glsl */ `#version 300 es
@@ -37,8 +41,7 @@ uniform int uCount;
 
 // Livello base: dove c'è la persona, l'immagine è divisa in sezioni irregolari con ritardi diversi.
 uniform sampler2D uMask;    // maschera della persona (riga 0 = alto)
-uniform float uAspect;      // larghezza / altezza del video
-uniform float uCellSize;    // lato delle sezioni più grandi, in frazione della larghezza
+uniform vec2 uCellUv;       // lato delle sezioni più grandi, in UV del video (quadrate sullo schermo)
 uniform float uSplit;       // probabilità che una sezione si divida in due (fino a 3 volte)
 uniform float uSlit;        // quota di sezioni con il ritardo a strisce ("slit-scan")
 uniform float uJitter;      // quota di sezioni anche un po' spostate
@@ -79,7 +82,7 @@ void main() {
   if (personNear(vUv) > 0.3) {
     // Griglia fissa nell'immagine (non agganciata al corpo), con sezioni di dimensioni miste:
     // ogni sezione può dividersi a metà in orizzontale o in verticale, fino a tre volte.
-    vec2 size = vec2(uCellSize, uCellSize * uAspect); // sezioni quadrate in pixel
+    vec2 size = uCellUv;
     vec2 cell = floor(vUv / size);
     // Ogni sezione grande cambia per conto suo, a un ritmo suo.
     float rate = uShuffle * (0.5 + hash12(cell + 5.5));
@@ -292,8 +295,11 @@ export class TimeBlocks {
     const lerp = (a, b, t) => a + (b - a) * t;
 
     // Dimensioni: per lo più rettangoli medi, a volte strisce strette e alte (come nel collo del riferimento).
-    let w = lerp(p.minSize, p.maxSize, Math.pow(rand(), 1.5));
-    let h = lerp(p.minSize * 0.6, p.maxSize * 0.8, Math.pow(rand(), 1.5));
+    // Dimensioni misurate sullo schermo, poi convertite in UV del video. Larghezza e altezza
+    // usano scale diverse (la larghezza con SIZE_REF), così su un portatile restano come prima.
+    const [ux, uy] = this.renderer.shortSideToVideoUv(1);
+    let w = lerp(p.minSize, p.maxSize, Math.pow(rand(), 1.5)) * ux * SIZE_REF;
+    let h = lerp(p.minSize * 0.6, p.maxSize * 0.8, Math.pow(rand(), 1.5)) * uy;
     if (rand() < 0.25) {
       w *= 0.4;
       h *= 1.8;
@@ -322,8 +328,8 @@ export class TimeBlocks {
       // Un blocco congelato resta sul fotogramma in cui è nato: deve sparire prima che la storia lo sovrascriva.
       frozenLayer: frozen ? this.layerAgo(delay) : -1,
       life: frozen ? Math.min(p.life * (0.5 + rand()), 0.8) : p.life * (0.5 + rand()),
-      ox: shifted ? (rand() - 0.5) * 0.08 : 0,
-      oy: shifted ? (rand() - 0.5) * 0.05 : 0,
+      ox: shifted ? (rand() - 0.5) * 0.08 * ux * SIZE_REF : 0,
+      oy: shifted ? (rand() - 0.5) * 0.05 * uy : 0,
     };
   }
 
@@ -355,8 +361,9 @@ export class TimeBlocks {
     gl.activeTexture(gl.TEXTURE2);
     gl.bindTexture(gl.TEXTURE_2D, this.renderer.maskTexture);
     gl.uniform1i(uniforms.uMask, 2);
-    gl.uniform1f(uniforms.uAspect, this.outputSize[0] / this.outputSize[1]);
-    gl.uniform1f(uniforms.uCellSize, p.cellSize);
+    // Le sezioni sono misurate sullo schermo, non sul video: così hanno la stessa grandezza
+    // apparente su un monitor e su un telefono in verticale (che mostra solo una parte del video).
+    gl.uniform2f(uniforms.uCellUv, ...this.renderer.shortSideToVideoUv(p.cellSize * SIZE_REF));
     gl.uniform1f(uniforms.uSplit, p.split);
     gl.uniform1f(uniforms.uSlit, p.slit);
     gl.uniform1f(uniforms.uJitter, p.jitter);

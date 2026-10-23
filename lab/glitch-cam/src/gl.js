@@ -120,6 +120,28 @@ export class Renderer {
     return coverTransform(this.canvas.width, this.canvas.height, this.videoSize[0], this.videoSize[1]);
   }
 
+  /**
+   * Unità di misura proporzionale allo schermo: 1 su un lato corto di 900 px (un portatile),
+   * meno sui telefoni. Moltiplicata alle dimensioni "in pixel" degli effetti, li fa sembrare
+   * uguali su schermi di grandezza diversa.
+   */
+  screenUnit() {
+    const short = Math.min(this.canvas.clientWidth, this.canvas.clientHeight) || 900;
+    return Math.min(1.6, Math.max(0.35, short / 900));
+  }
+
+  /**
+   * Quanto vale, in UV del video (x, y), una lunghezza pari a `fraction` del lato corto dello schermo.
+   * Tiene conto del ritaglio "cover": sui telefoni in verticale si vede solo una parte del video.
+   */
+  shortSideToVideoUv(fraction) {
+    const w = this.canvas.width || 1;
+    const h = this.canvas.height || 1;
+    const short = Math.min(w, h) * fraction;
+    const { scale } = this.coverTransform();
+    return [(short / w) * scale[0], (short / h) * scale[1]];
+  }
+
   /** Compila e collega un programma; lancia un errore leggibile se qualcosa non compila. */
   createProgram(fragmentSource, vertexSource = FULLSCREEN_VERT) {
     const gl = this.gl;

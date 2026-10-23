@@ -13,6 +13,7 @@ export const IS_MOBILE =
  *   modelFps:       quante volte al secondo girano i modelli di mano e sagoma
  *   historyFrames:  fotogrammi tenuti in memoria per i blocchi nel tempo
  *   historyWidth:   larghezza a cui sono salvati quei fotogrammi
+ *   tuning:         valori di partenza diversi per alcuni parametri degli effetti, per nome
  */
 export const QUALITY = IS_MOBILE
   ? {
@@ -22,6 +23,12 @@ export const QUALITY = IS_MOBILE
       modelFps: 15,
       historyFrames: 20,
       historyWidth: 480,
+      // Il telefono in mano si muove sempre un po': per i blocchi nel tempo "tutto si muove".
+      // Partiamo più calmi (ritardi brevi, più sezioni nel presente, meno rettangoli sparsi);
+      // con la mano aperta l'effetto sale comunque.
+      tuning: {
+        timeblocks: { baseDelay: 4, baseDelayHand: 12, liveShare: 0.5, rate: 2.5, maxDelay: 12, maxBlocks: 5 },
+      },
     }
   : {
       camera: { width: 1280, height: 720 },
@@ -30,6 +37,7 @@ export const QUALITY = IS_MOBILE
       modelFps: 30,
       historyFrames: 32,
       historyWidth: 960,
+      tuning: {},
     };
 
 const MIN_RENDER_SCALE = 0.45;

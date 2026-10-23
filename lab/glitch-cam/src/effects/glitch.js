@@ -125,7 +125,8 @@ export function createGlitchEffect() {
       gl.uniform1f(uniforms.uSliceDensity, params.sliceDensity);
       gl.uniform2f(uniforms.uResolution, renderer.canvas.width, renderer.canvas.height);
       // Dimensione in pixel CSS convertita in pixel del canvas: stessa resa anche sugli schermi retina.
-      gl.uniform1f(uniforms.uPixelSize, params.pixelSize * dpr);
+      // In più è proporzionale allo schermo: su un telefono i pixel non diventano enormi.
+      gl.uniform1f(uniforms.uPixelSize, params.pixelSize * dpr * renderer.screenUnit());
       gl.uniform1f(uniforms.uPixelDensity, params.pixelDensity);
       gl.uniform1f(uniforms.uPosterize, params.posterize);
       gl.uniform1f(uniforms.uPatchiness, params.patchiness);
