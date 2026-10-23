@@ -1,0 +1,3 @@
+# Il .gitignore del portfolio esclude .env.*: qui teniamo l'esempio
+!.env.example
+dist/

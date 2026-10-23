@@ -1,0 +1,37 @@
+/* Palette e tipografia (da affinare, PLAN.md sezione 3). */
+:root {
+  --red: #E8392B;
+  --green: #2FBF4A;
+  --blue: #2B3FE0;
+  --paper: #E6E6E6;
+  --ink: #111;
+  --white: #fff;
+  --draw-bg: var(--paper); /* fondo unico delle schermate di disegno */
+  --card-head: #F5F5F3; /* header delle carte, più chiaro del fondo pagina */
+  --tone-grey: #D3D3D0; /* area colorata "grigia" delle carte */
+
+  --font-serif: 'Fraunces', Georgia, serif;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+
+  --radius-card: 24px;
+  --touch: 44px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Niente zoom col doppio tocco (i tocchi veloci su pulsanti e carte restano tocchi);
+   lo zoom con due dita resta possibile sulle carte, per l'accessibilità. */
+html { touch-action: manipulation; }
+
+/* 100vh per i browser senza dvh (iOS < 15.4), poi dvh che segue le barre del browser */
+#app { min-height: 100vh; min-height: 100dvh; }

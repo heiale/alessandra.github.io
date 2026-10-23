@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Generates the static HTML pages. Edit the content below, then run:  python3 build.py"""
+import json
 import time
 from html import escape
 from pathlib import Path
@@ -823,6 +824,9 @@ def build_about():
 
 # Laboratory: small interactive experiments. Each one is a separate web app published in
 # laboratory/<slug>/ (Glitch Cam is built from lab/glitch-cam with `npm run build`).
+# An experiment with "url" runs on its own server: laboratory/<slug>/ is then a small waiting page
+# that wakes the server and opens the game (see build_lab_wake). "hidden" keeps the card off the
+# Laboratory page, e.g. until the server is online.
 EXPERIMENTS = [
     {
         "slug": "glitch-cam",
@@ -831,6 +835,18 @@ EXPERIMENTS = [
         "desc": "A real-time webcam glitch: as you move, your image breaks into pieces from different moments, "
                 "and your open hand pushes the distortion to the max.",
         "tags": ["WebGL", "Computer vision", "Interaction"],
+    },
+    {
+        "slug": "pictionary-ai",
+        "name": "Pictionary AI",
+        "image": "lab-pictionary-ai.svg",
+        "desc": "A drawing game against an AI: you sketch a word and it guesses, then it draws "
+                "and you guess. Made for phones.",
+        "tags": ["AI", "Drawing", "Game"],
+        # Render server that serves the game (lab/pictionary-ai, deploy steps in DEPLOY.md).
+        "url": "https://pictionary-ai.onrender.com",
+        # Remove once the server is online and a full game works there.
+        "hidden": True,
     },
 ]
 
@@ -842,6 +858,7 @@ def build_laboratory():
         f'<span class="proj-desc">{escape(e["desc"])}</span>'
         f'<span class="proj-tags">{"".join(f"<span>{escape(t)}</span>" for t in e["tags"])}</span></span></a>'
         for e in EXPERIMENTS
+        if not e.get("hidden")
     )
     body = f"""<section class="page-head">
   <h1 class="page-title">Laboratory</h1>
@@ -850,6 +867,87 @@ def build_laboratory():
 <section class="proj-grid page-end">{cards}</section>"""
     page("laboratory.html", f"Laboratory · {NAME}", body,
          "Small interactive experiments exploring how people and technology can play together.")
+
+
+def build_lab_wake(e):
+    """Waiting page for an experiment hosted on its own server (free hosting sleeps when idle).
+    It calls the server's /wake address and opens the game as soon as the server answers."""
+    url = e["url"].rstrip("/")
+    html = f"""<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{escape(e["name"])} · {NAME}</title>
+<meta name="description" content="{escape(e["desc"])}">
+<meta name="robots" content="noindex">
+<link rel="icon" href="../../assets/icons/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Inter:wght@400;500;600&display=swap">
+<style>
+  *, *::before, *::after {{ box-sizing: border-box; }}
+  html, body {{ margin: 0; min-height: 100%; background: #E6E6E6; color: #111; font-family: Inter, system-ui, sans-serif; }}
+  main {{ min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: 24px 16px; }}
+  .card {{ width: 100%; max-width: 360px; border-radius: 24px; overflow: hidden; background: #F5F5F3;
+    box-shadow: 0 22px 44px -22px rgba(17, 17, 17, .45); }}
+  .head {{ padding: 18px 20px 22px; }}
+  .meta {{ font-size: 12px; font-weight: 500; letter-spacing: .05em; text-transform: uppercase; color: rgba(17, 17, 17, .5); }}
+  h1 {{ margin: 22px 0 8px; font: 600 36px/1.05 Fraunces, Georgia, serif; letter-spacing: -.015em; }}
+  p {{ margin: 0; font-size: 15px; line-height: 1.4; color: rgba(17, 17, 17, .68); }}
+  .art {{ height: 140px; display: grid; place-items: center; background: #D3D3D0; }}
+  .dots {{ display: flex; gap: 10px; }}
+  .dots i {{ width: 12px; height: 12px; border-radius: 50%; background: #111; animation: dot 1.2s ease-in-out infinite; }}
+  .dots i:nth-child(2) {{ animation-delay: .15s; }} .dots i:nth-child(3) {{ animation-delay: .3s; }}
+  @keyframes dot {{ 0%, 80%, 100% {{ opacity: .25; transform: none; }} 40% {{ opacity: 1; transform: translateY(-6px); }} }}
+  .links {{ display: flex; gap: 16px; margin-top: 18px; font-size: 15px; font-weight: 600; }}
+  a {{ color: #111; }}
+  [hidden] {{ display: none !important; }}
+  @media (prefers-reduced-motion: reduce) {{ .dots i {{ animation: none; }} }}
+</style>
+</head>
+<body>
+<main>
+  <article class="card" aria-live="polite">
+    <div class="head">
+      <div class="meta">Laboratory · {escape(e["name"])}</div>
+      <h1 id="title">Waking up the AI</h1>
+      <p id="text">Opening the game…</p>
+      <div class="links" id="links" hidden>
+        <a href="{url}/">Try again</a>
+        <a href="../../laboratory.html">Back to the Laboratory</a>
+      </div>
+    </div>
+    <div class="art" aria-hidden="true"><div class="dots"><i></i><i></i><i></i></div></div>
+  </article>
+</main>
+<script>
+  // The game server sleeps when nobody plays (free hosting): call it, wait until it answers,
+  // then open the game. After 90 seconds without an answer, show the links instead.
+  const GAME = {json.dumps(url)};
+  const text = document.getElementById("text");
+  const slow = setTimeout(() => {{
+    text.textContent = "The game server naps when nobody plays. It takes about a minute to wake up.";
+  }}, 4000);
+  const ctrl = new AbortController();
+  const giveUp = setTimeout(() => ctrl.abort(), 90000);
+  fetch(GAME + "/wake", {{ mode: "no-cors", cache: "no-store", signal: ctrl.signal }})
+    .then(() => location.replace(GAME + "/"))
+    .catch(() => {{
+      clearTimeout(slow);
+      document.getElementById("title").textContent = "The game is resting";
+      text.textContent = "The server didn't wake up this time. Try again in a moment.";
+      document.querySelector(".art").hidden = true;
+      document.getElementById("links").hidden = false;
+    }})
+    .finally(() => clearTimeout(giveUp));
+</script>
+</body>
+</html>
+"""
+    out = ROOT / "laboratory" / e["slug"] / "index.html"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(html, encoding="utf-8")
 
 
 def build_projects():
@@ -1028,6 +1126,9 @@ if __name__ == "__main__":
     build_about()
     build_projects()
     build_laboratory()
+    for e in EXPERIMENTS:
+        if e.get("url"):
+            build_lab_wake(e)
     for s in PROJECTS:
         build_case(s)
     print("Built", 3 + len(PROJECTS), "pages")
