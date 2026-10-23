@@ -89,6 +89,7 @@ const GESTURE_SCHEMA = [
   { key: 'handMin', label: 'Closed fist: level', min: 0, max: 10, step: 0.1 },
   { key: 'handMax', label: 'Open hand: level', min: 0, max: 10, step: 0.1 },
   { key: 'verticalInfluence', label: 'Hand height influence', min: 0, max: 1, step: 0.01 },
+  { key: 'fistZone', label: 'Fist dead zone (openness)', min: 0, max: 0.8, step: 0.01 },
   { key: 'attack', label: 'Rise time (s)', min: 0.01, max: 1.5, step: 0.01 },
   { key: 'release', label: 'Fall time (s)', min: 0.01, max: 2, step: 0.01 },
   { key: 'lostGrace', label: 'Lost hand grace (s)', min: 0, max: 1, step: 0.05 },
@@ -99,6 +100,18 @@ const SEGMENTATION_SCHEMA = [
 ];
 
 const STORAGE_KEY = 'glitch-cam:tuning';
+
+// Controlli mostrati nel pannello: solo i più utili. Gli altri parametri restano nel codice
+// (schemi degli effetti) con i loro valori, ma non compaiono qui.
+const PANEL_SECTIONS = [
+  { title: 'Hand', items: [['gesture', 'fistZone'], ['gesture', 'verticalInfluence']], force: true },
+  { title: 'Glitch', items: [['glitch', 'pixelSize'], ['glitch', 'pieceDensity'], ['glitch', 'pixelDensity']] },
+  { title: 'Time blocks', items: [['timeblocks', 'cellSize'], ['timeblocks', 'baseDelay'], ['timeblocks', 'liveShare']] },
+  { title: 'Mask', items: [['glitch', 'maskThreshold']] },
+];
+
+// Etichette più corte di quelle degli schemi, dove serve.
+const SHORT_LABELS = { cellSize: 'Section size' };
 
 // Nomi dei gesti mostrati nel pannello (il pannello è in inglese, il tracker usa nomi italiani).
 const GESTURE_NAMES = { aperta: 'open', pugno: 'fist', intermedia: 'half open', nessuna: 'none' };
@@ -126,17 +139,9 @@ export function createDebugPanel({ panel, overlay, effects, mapper }) {
     <dl class="debug__stats">
       <dt>Render FPS</dt><dd data-stat="fps">–</dd>
       <dt>Quality</dt><dd data-stat="quality">–</dd>
-      <dt>Hand tracking FPS</dt><dd data-stat="trackFps">–</dd>
-      <dt>Hand model time</dt><dd data-stat="detectMs">–</dd>
-      <dt>Hand delegate</dt><dd data-stat="delegate">–</dd>
-      <dt>Segmentation FPS</dt><dd data-stat="segFps">–</dd>
-      <dt>Segmentation time</dt><dd data-stat="segMs">–</dd>
-      <dt>Segmentation delegate</dt><dd data-stat="segDelegate">–</dd>
-      <dt>Person in frame</dt><dd data-stat="coverage">–</dd>
+      <dt>Models FPS (hand / person)</dt><dd data-stat="models">–</dd>
       <dt>Gesture</dt><dd data-stat="gesture">–</dd>
       <dt>Hand openness</dt><dd data-stat="openness">–</dd>
-      <dt>Hand height</dt><dd data-stat="handY">–</dd>
-      <dt>Scattered time blocks</dt><dd data-stat="timeblocks">–</dd>
       <dt>Intensity</dt><dd data-stat="intensity">–</dd>
     </dl>
     <div class="debug__meter"><span data-meter></span></div>
@@ -153,29 +158,24 @@ export function createDebugPanel({ panel, overlay, effects, mapper }) {
   const controls = panel.querySelector('[data-controls]');
   const inputs = [];
 
-  addSliders(controls, GESTURE_SCHEMA, mapper.settings, inputs, save);
-
-  // Forza intensità: utile per regolare l'effetto senza dover tenere la mano davanti alla camera.
-  const overrideRow = document.createElement('div');
-  overrideRow.className = 'debug__row';
-  overrideRow.innerHTML = `
-    <label><input type="checkbox" data-override-toggle /> Force intensity</label>
-    <output>5.0</output>
-    <input type="range" min="0" max="10" step="0.1" value="5" disabled data-override-value />`;
-  controls.append(overrideRow);
-  const overrideToggle = overrideRow.querySelector('[data-override-toggle]');
-  const overrideValue = overrideRow.querySelector('[data-override-value]');
-  const overrideOut = overrideRow.querySelector('output');
-  const syncOverride = () => {
-    overrideValue.disabled = !overrideToggle.checked;
-    overrideOut.textContent = Number(overrideValue.value).toFixed(1);
-    mapper.override = overrideToggle.checked ? Number(overrideValue.value) : null;
+  // Schemi di tutti i parametri, per trovare etichetta e limiti dei controlli scelti.
+  const schemas = {
+    ...Object.fromEntries(effects.map((effect) => [effect.name, effect.schema])),
+    gesture: GESTURE_SCHEMA,
+    mask: SEGMENTATION_SCHEMA,
   };
-  overrideToggle.addEventListener('change', syncOverride);
-  overrideValue.addEventListener('input', syncOverride);
 
-  for (const effect of effects) addSliders(controls, effect.schema, effect.params, inputs, save);
-  addSliders(controls, SEGMENTATION_SCHEMA, SEGMENTATION_SETTINGS, inputs, save);
+  for (const section of PANEL_SECTIONS) {
+    const h = document.createElement('h2');
+    h.textContent = section.title;
+    controls.append(h);
+    if (section.force) addForceIntensity(controls, mapper);
+    for (const [id, key] of section.items) {
+      const item = schemas[id]?.find((entry) => entry.key === key);
+      if (!item || !tunables[id]) continue;
+      addSlider(controls, { ...item, label: SHORT_LABELS[key] ?? item.label }, tunables[id], inputs, save);
+    }
+  }
 
   addCheckbox(controls, 'Show person mask', flags.showMask, (on) => (flags.showMask = on));
   addCheckbox(controls, 'Show hand landmarks', flags.showLandmarks, (on) => {
@@ -260,7 +260,7 @@ export function createDebugPanel({ panel, overlay, effects, mapper }) {
     },
 
     /** Chiamato a ogni frame dal loop principale. */
-    update({ now, fps, tracker, segmenter, effects: active, hand, intensity, video, quality }) {
+    update({ now, fps, tracker, segmenter, hand, intensity, video, quality }) {
       if (panel.hidden) return;
       meter.style.width = `${(intensity * 100).toFixed(1)}%`;
       if (flags.showLandmarks) drawLandmarks(hand.present ? hand.landmarks : null, video);
@@ -272,55 +272,60 @@ export function createDebugPanel({ panel, overlay, effects, mapper }) {
       stat.quality.textContent = quality
         ? `${quality.profile} · ${Math.round(quality.scale * 100)}%${quality.steps ? ` · lowered ×${quality.steps}` : ''}`
         : '–';
-      stat.trackFps.textContent = tracker?.running ? tracker.stats.fps.toFixed(0) : 'off';
-      stat.detectMs.textContent = tracker?.running ? `${tracker.stats.ms.toFixed(1)} ms` : '–';
-      stat.delegate.textContent = tracker?.delegate ?? 'loading';
-      stat.segFps.textContent = segmenter?.running ? segmenter.stats.fps.toFixed(0) : 'off';
-      stat.segMs.textContent = segmenter?.running ? `${segmenter.stats.ms.toFixed(1)} ms` : '–';
-      stat.segDelegate.textContent = segmenter?.delegate ?? 'loading';
-      stat.coverage.textContent = segmenter?.version ? `${Math.round(segmenter.coverage * 100)}%` : '–';
+      const modelFps = (model) => (model?.running ? model.stats.fps.toFixed(0) : model?.task ? 'off' : 'loading');
+      stat.models.textContent = `${modelFps(tracker)} / ${modelFps(segmenter)}`;
       stat.gesture.textContent = hand.present ? (GESTURE_NAMES[hand.gesture] ?? hand.gesture) : 'no hand';
       stat.openness.textContent = hand.present ? hand.openness.toFixed(2) : '–';
-      stat.handY.textContent = hand.present ? hand.y.toFixed(2) : '–';
-      const blocks = active.find((effect) => effect.name === 'timeblocks');
-      stat.timeblocks.textContent = blocks ? String(blocks.count) : '–';
       stat.intensity.textContent = `${(intensity * 10).toFixed(1)} / 10${mapper.override !== null ? ' (forced)' : ''}`;
     },
   };
 }
 
-/** Crea uno slider per ogni voce dello schema; le voci `{ group }` diventano titoli. */
-function addSliders(container, schema, target, syncList, onChange) {
-  for (const item of schema) {
-    if (item.group) {
-      const h = document.createElement('h2');
-      h.textContent = item.group;
-      container.append(h);
-      continue;
-    }
-    const id = `ctl-${item.key}`;
-    const row = document.createElement('div');
-    row.className = 'debug__row';
-    row.innerHTML = `
-      <label for="${id}">${item.label}</label>
-      <output for="${id}"></output>
-      <input type="range" id="${id}" min="${item.min}" max="${item.max}" step="${item.step}" />`;
-    const input = row.querySelector('input');
-    const output = row.querySelector('output');
-    const decimals = Math.max(0, -Math.floor(Math.log10(item.step)));
-    const sync = () => {
-      input.value = target[item.key];
-      output.textContent = Number(target[item.key]).toFixed(decimals);
-    };
-    input.addEventListener('input', () => {
-      target[item.key] = Number(input.value);
-      output.textContent = Number(input.value).toFixed(decimals);
-      onChange();
-    });
-    sync();
-    syncList.push(sync);
-    container.append(row);
-  }
+/** Uno slider legato a `target[item.key]`, con etichetta e limiti presi dallo schema. */
+function addSlider(container, item, target, syncList, onChange) {
+  const id = `ctl-${item.key}`;
+  const row = document.createElement('div');
+  row.className = 'debug__row';
+  row.innerHTML = `
+    <label for="${id}">${item.label}</label>
+    <output for="${id}"></output>
+    <input type="range" id="${id}" min="${item.min}" max="${item.max}" step="${item.step}" />`;
+  const input = row.querySelector('input');
+  const output = row.querySelector('output');
+  const decimals = Math.max(0, -Math.floor(Math.log10(item.step)));
+  const sync = () => {
+    input.value = target[item.key];
+    output.textContent = Number(target[item.key]).toFixed(decimals);
+  };
+  input.addEventListener('input', () => {
+    target[item.key] = Number(input.value);
+    output.textContent = Number(input.value).toFixed(decimals);
+    onChange();
+  });
+  sync();
+  syncList.push(sync);
+  container.append(row);
+}
+
+/** Forza intensità: utile per regolare l'effetto senza dover tenere la mano davanti alla camera. */
+function addForceIntensity(container, mapper) {
+  const row = document.createElement('div');
+  row.className = 'debug__row';
+  row.innerHTML = `
+    <label><input type="checkbox" data-override-toggle /> Force intensity</label>
+    <output>5.0</output>
+    <input type="range" min="0" max="10" step="0.1" value="5" disabled data-override-value />`;
+  container.append(row);
+  const toggle = row.querySelector('[data-override-toggle]');
+  const value = row.querySelector('[data-override-value]');
+  const out = row.querySelector('output');
+  const sync = () => {
+    value.disabled = !toggle.checked;
+    out.textContent = Number(value.value).toFixed(1);
+    mapper.override = toggle.checked ? Number(value.value) : null;
+  };
+  toggle.addEventListener('change', sync);
+  value.addEventListener('input', sync);
 }
 
 function addCheckbox(container, label, checked, onChange) {

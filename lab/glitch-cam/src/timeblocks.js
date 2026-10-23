@@ -177,6 +177,7 @@ export class TimeBlocks {
 
     this.blocks = [];
     this.spawnDebt = 0;
+    this.warm = 1;
     this.intensity = 0;
     this.time = 0;
     this.rectData = new Float32Array(MAX_BLOCKS * 4);
@@ -206,7 +207,8 @@ export class TimeBlocks {
    * @param {{x0:number,y0:number,x1:number,y1:number}|null} bbox persona in coordinate video (y in basso)
    * @param {boolean} newFrame true se la webcam ha prodotto un fotogramma nuovo
    */
-  update(dt, intensity, bbox, newFrame) {
+  update(dt, intensity, bbox, newFrame, warm = 1) {
+    this.warm = warm; // 0..1: partenza graduale (vedi main.js)
     const [videoW, videoH] = this.renderer.videoSize;
     if (videoW <= 1) return;
     this.allocate(videoW, videoH);
@@ -269,6 +271,11 @@ export class TimeBlocks {
     this.stored = this.stored === 0 ? this.frames : Math.min(this.stored + 1, this.frames);
   }
 
+  /** 0..1: quanto è acceso il livello base, in funzione dell'intensità. */
+  baseAmount() {
+    return Math.pow(Math.min(1, this.intensity / 0.6), 0.8);
+  }
+
   /** Indice nella storia del fotogramma di `delay` fotogrammi fa. */
   layerAgo(delay) {
     return (this.head - 1 - delay + this.frames * 2) % this.frames;
@@ -280,9 +287,13 @@ export class TimeBlocks {
     // Invecchiamento: i blocchi finiti spariscono.
     for (const block of this.blocks) block.life -= dt;
     this.blocks = this.blocks.filter((block) => block.life > 0);
+    // Pugno (intensità ~0): niente distorsione, quindi anche i rettangoli già visibili spariscono subito.
+    if (intensity < 0.02) this.blocks = [];
 
     // Nascita: più frequente con l'intensità, ma qualche blocco c'è sempre (si vede solo muovendosi).
-    this.spawnDebt += p.rate * (0.2 + 0.8 * intensity) * dt;
+    // Senza persona riconosciuta niente rettangoli: col telefono in mano si muove tutta l'immagine.
+    if (!bbox) return;
+    this.spawnDebt += p.rate * intensity * this.warm * dt;
     while (this.spawnDebt >= 1) {
       this.spawnDebt -= 1;
       if (this.blocks.length < p.maxBlocks) this.blocks.push(this.createBlock(bbox));
@@ -367,8 +378,15 @@ export class TimeBlocks {
     gl.uniform1f(uniforms.uSplit, p.split);
     gl.uniform1f(uniforms.uSlit, p.slit);
     gl.uniform1f(uniforms.uJitter, p.jitter);
-    gl.uniform1f(uniforms.uBaseDelay, Math.min(p.baseDelay + p.baseDelayHand * this.intensity, this.stored - 1));
-    gl.uniform1f(uniforms.uLiveShare, p.liveShare);
+    // Quanto è acceso il livello base: 0 a intensità 0 (pugno), leggero sotto il livello 1,
+    // pieno da circa livello 6. Il ritardo cresce con lo stesso valore.
+    const amount = this.baseAmount();
+    gl.uniform1f(
+      uniforms.uBaseDelay,
+      Math.min((p.baseDelay + p.baseDelayHand * this.intensity) * amount, this.stored - 1),
+    );
+    // In partenza tutte le sezioni sono nel presente, poi scendono al valore scelto.
+    gl.uniform1f(uniforms.uLiveShare, 1 - (1 - p.liveShare) * this.warm * amount);
     gl.uniform1f(uniforms.uShuffle, p.shuffle);
     gl.uniform1f(uniforms.uTime, this.time);
     gl.uniform1f(uniforms.uNewest, this.layerAgo(0));

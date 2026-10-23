@@ -109,6 +109,7 @@ export class GestureMapper {
       handMin: 0, // mano presente, chiusa a pugno: effetto al minimo
       handMax: 10, // mano presente, aperta: effetto al massimo
       verticalInfluence: 0.35, // quanto l'altezza della mano sposta il livello dentro handMin–handMax
+      fistZone: 0.3, // apertura sotto cui la mano conta come pugno pieno (livello esattamente handMin)
       attack: 0.15, // secondi per salire (verso più glitch)
       release: 0.5, // secondi per scendere (verso meno glitch)
       lostGrace: 0.3, // secondi in cui teniamo l'ultima mano dopo averla persa (evita sfarfallii)
@@ -147,8 +148,11 @@ export class GestureMapper {
     } else {
       // Mano presente: pugno → handMin, mano aperta → handMax. L'altezza sposta il valore
       // dentro lo stesso intervallo (in alto di più, in basso di meno), senza mai uscirne.
+      // Sotto fistZone la mano è un pugno pieno: anche se le dita non sono chiuse del tutto, livello 0.
+      const open = clamp01((recent.openness - s.fistZone) / Math.max(1 - s.fistZone, 1e-3));
+      // L'altezza moltiplica l'apertura (non la somma): con il pugno resta sempre 0.
       const fromCenter = 0.5 - recent.y; // +0.5 in alto, −0.5 in basso
-      const amount = clamp01(recent.openness + s.verticalInfluence * fromCenter * 2);
+      const amount = clamp01(open * (1 + s.verticalInfluence * fromCenter * 2));
       target = lerp(s.handMin, s.handMax, amount);
     }
     if (this.override !== null) target = this.override;

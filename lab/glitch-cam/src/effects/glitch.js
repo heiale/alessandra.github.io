@@ -24,8 +24,8 @@ export const GLITCH_SCHEMA = [
 
   { group: 'Pixels' },
   { key: 'pixelSize', label: 'Pixel size (px)', min: 2, max: 64, step: 1, value: 18 },
-  { key: 'pixelDensity', label: 'Pixelated zones share', min: 0, max: 1, step: 0.01, value: 0.6 },
-  { key: 'smear', label: 'Smeared zones share', min: 0, max: 1, step: 0.01, value: 0.3 },
+  { key: 'pixelDensity', label: 'Pixelated zones share', min: 0, max: 1, step: 0.01, value: 0.4 },
+  { key: 'smear', label: 'Smeared zones share', min: 0, max: 1, step: 0.01, value: 0.2 },
   { key: 'posterize', label: 'Color levels (32 = off)', min: 2, max: 32, step: 1, value: 32 },
   { key: 'patchiness', label: 'Patchiness', min: 0, max: 1, step: 0.01, value: 0.7 },
 
@@ -73,7 +73,9 @@ export function createGlitchEffect() {
 
     update(state, dt) {
       time = state.time;
-      intensity = state.intensity;
+      // Curva: a intensità bassa il glitch è molto più leggero (livello 1 ≈ un terzo di prima),
+      // al massimo resta uguale. A 0 è esattamente 0: nessun pixel, nessuna distorsione.
+      intensity = Math.pow(state.intensity, 1.5);
       showMask = Boolean(state.debug?.showMask);
 
       if (burstLeft > 0) {

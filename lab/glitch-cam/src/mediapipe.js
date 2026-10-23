@@ -19,6 +19,23 @@ export function loadFileset() {
 }
 
 /**
+ * Comincia a scaricare motore e modelli prima che servano (al click su "Turn on webcam", mentre
+ * il browser chiede il permesso per la camera). Finiscono nella cache del browser: quando i modelli
+ * partono davvero, li trovano già pronti. Gli errori qui non contano: si riprova al momento giusto.
+ */
+export function prefetchAssets() {
+  const files = [
+    'mediapipe/wasm/vision_wasm_internal.js',
+    'mediapipe/wasm/vision_wasm_internal.wasm',
+    'models/hand_landmarker.task',
+    'models/selfie_segmenter.tflite',
+  ];
+  for (const file of files) {
+    fetch(new URL(file, document.baseURI)).catch(() => {});
+  }
+}
+
+/**
  * @param {string} file nome del file in public/models/
  * @param {string} remotePath percorso sotto storage.googleapis.com/mediapipe-models/
  */

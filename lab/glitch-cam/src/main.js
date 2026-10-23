@@ -10,6 +10,7 @@ import { Renderer } from './gl.js';
 import { BackgroundPlate } from './background.js';
 import { TimeBlocks } from './timeblocks.js';
 import { QUALITY, IS_MOBILE, AdaptiveQuality } from './quality.js';
+import { prefetchAssets } from './mediapipe.js';
 import { HandTracker, GestureMapper } from './tracking.js';
 import { PersonSegmenter } from './segmentation.js';
 import { EFFECTS, ACTIVE_EFFECTS } from './effects/index.js';
@@ -18,6 +19,8 @@ import { playBootGlitch } from './boot.js';
 
 const canvas = document.getElementById('stage');
 const intro = createIntro(document.getElementById('intro'), { onStart: start });
+// Sul telefono non c'è il pannello debug: il suggerimento non nomina il tasto D.
+if (IS_MOBILE) document.getElementById('hint').textContent = 'Move to break apart · Open your hand for more · Make a fist to stop';
 const hint = createHint(document.getElementById('hint'));
 
 // Entrata della pagina con effetto glitch.
@@ -35,6 +38,10 @@ let camera = null;
 let tracker = null;
 let segmenter = null;
 let maskVersion = -1;
+// Partenza graduale: gli effetti salgono da 0 a pieno in WARM_UP ms, a partire da quando
+// la segmentazione è pronta (prima non c'è nessun effetto).
+const WARM_UP = 3000;
+let warmStart = null;
 let rafId = 0;
 
 const NO_HAND = {
@@ -48,6 +55,8 @@ const NO_HAND = {
 
 async function start() {
   intro.setLoading('Turning on the webcam…');
+  // I modelli si scaricano mentre il browser chiede il permesso per la camera.
+  prefetchAssets();
   try {
     camera = await startCamera(QUALITY.camera);
   } catch (err) {
@@ -115,11 +124,16 @@ async function startVision(video) {
   // La sessione potrebbe essere finita mentre i modelli si caricavano.
   if (tracker !== hands) return;
 
+  if (!personOk) {
+    // Ripiego: senza segmentazione, gli effetti valgono per tutta l'immagine.
+    renderer.resetMask(255);
+    warmStart ??= performance.now();
+  }
   if (!handsOk) hint.show('Hand tracking unavailable: the glitch stays at its base level.');
   else if (!personOk) hint.show('Person segmentation unavailable: the glitch covers the whole image.');
   else {
     hint.show();
-    hint.fadeAfter(6000);
+    hint.fadeAfter(10000);
   }
 }
 
@@ -145,7 +159,8 @@ function stopSession(reason) {
   segmenter?.close();
   tracker = null;
   segmenter = null;
-  renderer?.resetMask();
+  renderer?.resetMask(0);
+  warmStart = null;
   camera?.stop();
   camera?.video.remove();
   camera = null;
@@ -178,15 +193,22 @@ function frame(now) {
   // La maschera arriva al ritmo della segmentazione (~30 Hz): la ricarichiamo solo quando è nuova.
   if (segmenter && segmenter.version !== maskVersion) {
     maskVersion = segmenter.version;
-    if (maskVersion > 0) renderer.uploadMask(segmenter.mask, segmenter.width, segmenter.height);
+    if (maskVersion > 0) {
+      renderer.uploadMask(segmenter.mask, segmenter.width, segmenter.height);
+      warmStart ??= now;
+    }
   }
-  renderer.background.update();
+  // Lo sfondo si impara solo con una maschera vera: prima non sappiamo dove sia la persona.
+  if (maskVersion > 0) renderer.background.update();
 
   const hand = tracker?.latest ?? NO_HAND;
   const intensity = mapper.update(hand, dt, now);
-  renderer.source.update(dt, intensity, segmenter?.bbox ?? null, newFrame);
+  // 0 finché la segmentazione non è pronta, poi sale fino a 1 in WARM_UP ms.
+  const warm = warmStart === null ? 0 : Math.min(1, (now - warmStart) / WARM_UP);
+  const effective = intensity * warm;
+  renderer.source.update(dt, effective, segmenter?.bbox ?? null, newFrame, warm);
   // Stato condiviso: tutti gli effetti ricevono lo stesso oggetto.
-  const state = { time: now / 1000, intensity, hand, debug: debug.flags };
+  const state = { time: now / 1000, intensity: effective, hand, debug: debug.flags };
 
   // Disegnati in ordine, uno sopra l'altro.
   for (const effect of effects) {
@@ -234,6 +256,7 @@ if (import.meta.env.DEV) {
 // ---------------------------------------------------------------------------
 
 window.addEventListener('keydown', (e) => {
+  if (IS_MOBILE) return; // sul telefono il pannello debug non esiste
   if (e.key.toLowerCase() !== 'd' || e.metaKey || e.ctrlKey || e.altKey || !debug) return;
   if (e.target instanceof HTMLInputElement && e.target.type !== 'range' && e.target.type !== 'checkbox') return;
   debug.toggle();

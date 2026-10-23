@@ -28,15 +28,18 @@ export const QUALITY = IS_MOBILE
       // con la mano aperta l'effetto sale comunque.
       tuning: {
         timeblocks: { baseDelay: 4, baseDelayHand: 12, liveShare: 0.5, rate: 2.5, maxDelay: 12, maxBlocks: 5 },
+        glitch: { pixelDensity: 0.25, smear: 0.15, pieceDensity: 0.5 },
       },
     }
   : {
       camera: { width: 1280, height: 720 },
-      maxPixelRatio: 2,
-      renderScale: 1,
-      modelFps: 30,
-      historyFrames: 32,
-      historyWidth: 960,
+      // Anche sul computer non serve la piena risoluzione retina per un effetto glitch:
+      // ~2,5 volte meno pixel da calcolare su un MacBook, differenza quasi invisibile.
+      maxPixelRatio: 1.5,
+      renderScale: 0.85,
+      modelFps: 24,
+      historyFrames: 24,
+      historyWidth: 800,
       tuning: {},
     };
 

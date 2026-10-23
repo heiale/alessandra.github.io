@@ -164,11 +164,15 @@ body {
   transform: translateX(-50%);
   margin: 0;
   padding: 8px 14px;
-  border-radius: 999px;
+  border-radius: 18px;
   background: rgba(0, 0, 0, 0.55);
   font-size: 13px;
+  line-height: 1.4;
   color: #ddd;
-  white-space: nowrap;
+  /* Su schermi stretti va a capo invece di uscire dallo schermo. */
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  text-align: center;
   transition: opacity 0.8s ease;
 }
 

@@ -7,7 +7,8 @@ li sposta: i contorni si rompono e nei buchi lasciati dai pezzi si vede lo sfond
 L'intensità va su una scala da 0 a 10:
 
 - **Nessuna mano** → livello 0–1, oscilla piano
-- **Mano in scena** → livello 0–10: pugno chiuso 0 (minimo), mano aperta 10 (massimo), in mezzo in modo continuo
+- **Mano in scena** → livello 0–10: pugno chiuso 0 (minimo), mano aperta 10 (massimo), in mezzo in modo continuo.
+  Con il pugno (apertura sotto la "fist dead zone") il livello è esattamente 0: nessun pixel, nessuna distorsione
 - **Altezza della mano** → sposta un po' il livello (in alto di più, in basso di meno)
 
 ### Blocchi nel tempo
@@ -60,8 +61,9 @@ quella cartella.
 
 ## Controlli
 
-- **D**: apre/chiude il pannello debug, con FPS, stato del tracking, scheletro della mano e uno
-  slider per ogni parametro. I valori modificati restano salvati in quel browser; **Copia valori**
+- **D** (solo computer): apre/chiude il pannello debug, con le statistiche principali e una decina
+  di controlli scelti (mano, glitch, blocchi nel tempo, maschera). Gli altri parametri sono nel codice,
+  negli schemi di ogni effetto; per mostrarne altri nel pannello, aggiungili a `PANEL_SECTIONS` in `src/ui.js`. I valori modificati restano salvati in quel browser; **Copia valori**
   li copia come JSON, da incollare come nuovi default nei file dei vari moduli.
 - **Mostra maschera persona** colora la zona che il modello riconosce come persona; gli slider
   "Maschera persona" regolano soglia, morbidezza del bordo e stabilità nel tempo.
@@ -121,6 +123,9 @@ Il pannello debug costruisce gli slider da `schema` in automatico.
 - **Telefoni** (`src/quality.js`): webcam a 640×480, effetto disegnato al 75% con densità 1, modelli
   a 15 Hz, memoria del passato ridotta (20 fotogrammi a 480 px invece di 32 a 960 px).
   Partono anche con blocchi nel tempo più calmi (il telefono in mano si muove sempre un po').
+- Finché la segmentazione della persona non è pronta non c'è nessun effetto; poi gli effetti salgono
+  gradualmente in 3 secondi. Se la segmentazione non parte, gli effetti valgono per tutta l'immagine.
+- Sul telefono il pannello debug non è disponibile.
 - Dimensioni di pixel, zone e sezioni sono proporzionali allo schermo (lato corto), non in pixel
   fissi: su telefono e computer l'effetto ha le stesse proporzioni.
 - **Qualità adattiva** (tutti i dispositivi): se gli FPS restano sotto 24 per più di 1,5 s, la

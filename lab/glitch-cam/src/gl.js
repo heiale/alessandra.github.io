@@ -61,12 +61,15 @@ export class Renderer {
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
     gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    this.resetMask();
+    this.resetMask(0);
   }
 
-  /** Riporta la maschera a "tutto persona". */
-  resetMask() {
-    this.uploadMask(new Uint8Array([255]), 1, 1);
+  /**
+   * Maschera uniforme: 0 = "nessuna persona" (finché la segmentazione non è pronta: niente effetti),
+   * 255 = "tutto persona" (ripiego se la segmentazione non parte: effetti su tutta l'immagine).
+   */
+  resetMask(value = 0) {
+    this.uploadMask(new Uint8Array([value]), 1, 1);
   }
 
   /**
