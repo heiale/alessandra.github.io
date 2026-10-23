@@ -10,6 +10,11 @@ void main() {
   gl_Position = vec4(aPosition, 0.0, 1.0);
 }`;
 
+// Riferimento su cui sono tarate le dimensioni degli effetti: un telefono in verticale largo 375 px,
+// su cui il video 4:3 della camera frontale si vede largo circa 1080 px (ritagliato ai lati).
+const PHONE_WIDTH = 375;
+const PHONE_VIDEO_WIDTH = 1080;
+
 export class Renderer {
   /**
    * @param {HTMLCanvasElement} canvas
@@ -124,25 +129,24 @@ export class Renderer {
   }
 
   /**
-   * Unità di misura proporzionale allo schermo: 1 su un lato corto di 900 px (un portatile),
-   * meno sui telefoni. Moltiplicata alle dimensioni "in pixel" degli effetti, li fa sembrare
-   * uguali su schermi di grandezza diversa.
+   * Quanto appare grande la persona inquadrata, rispetto al telefono in verticale su cui l'effetto
+   * è tarato (= 1). Si misura come larghezza a cui si vede il video intero (parte tagliata compresa):
+   * su un telefono in verticale ~1080 px, su un portatile ~1600 px.
+   * Le dimensioni degli effetti moltiplicate per questo valore hanno la stessa grandezza
+   * rispetto al corpo su qualsiasi schermo.
    */
-  screenUnit() {
-    const short = Math.min(this.canvas.clientWidth, this.canvas.clientHeight) || 900;
-    return Math.min(1.6, Math.max(0.35, short / 900));
+  personUnit() {
+    const { scale } = this.coverTransform();
+    const shownVideoWidth = this.canvas.clientWidth / Math.max(scale[0], 1e-3);
+    return Math.min(3, Math.max(0.3, shownVideoWidth / PHONE_VIDEO_WIDTH));
   }
 
   /**
-   * Quanto vale, in UV del video (x, y), una lunghezza pari a `fraction` del lato corto dello schermo.
-   * Tiene conto del ritaglio "cover": sui telefoni in verticale si vede solo una parte del video.
+   * Spostamento espresso come frazione della larghezza di un telefono (375 px) → UV dello schermo
+   * attuale, proporzionato alla persona come sopra.
    */
-  shortSideToVideoUv(fraction) {
-    const w = this.canvas.width || 1;
-    const h = this.canvas.height || 1;
-    const short = Math.min(w, h) * fraction;
-    const { scale } = this.coverTransform();
-    return [(short / w) * scale[0], (short / h) * scale[1]];
+  phoneWidthToScreenUv(fraction) {
+    return (fraction * PHONE_WIDTH * this.personUnit()) / Math.max(this.canvas.clientWidth, 1);
   }
 
   /** Compila e collega un programma; lancia un errore leggibile se qualcosa non compila. */

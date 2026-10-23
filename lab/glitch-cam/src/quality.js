@@ -23,13 +23,9 @@ export const QUALITY = IS_MOBILE
       modelFps: 15,
       historyFrames: 20,
       historyWidth: 480,
-      // Il telefono in mano si muove sempre un po': per i blocchi nel tempo "tutto si muove".
-      // Partiamo più calmi (ritardi brevi, più sezioni nel presente, meno rettangoli sparsi);
-      // con la mano aperta l'effetto sale comunque.
-      tuning: {
-        timeblocks: { baseDelay: 4, baseDelayHand: 12, liveShare: 0.5, rate: 2.5, maxDelay: 12, maxBlocks: 5 },
-        glitch: { pixelDensity: 0.25, smear: 0.15, pieceDensity: 0.5 },
-      },
+      // L'effetto ha gli stessi valori su telefono e computer (quelli calibrati sul telefono sono
+      // diventati i default di tutti); qui si possono aggiungere differenze, per nome dell'effetto.
+      tuning: {},
     }
   : {
       camera: { width: 1280, height: 720 },

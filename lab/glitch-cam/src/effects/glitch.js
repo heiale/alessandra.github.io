@@ -13,7 +13,7 @@ export const GLITCH_SCHEMA = [
 
   { group: 'Moved pieces' },
   { key: 'pieceAmount', label: 'Piece distance', min: 0, max: 0.4, step: 0.005, value: 0.25 },
-  { key: 'pieceDensity', label: 'Moved pieces share', min: 0, max: 1, step: 0.01, value: 0.7 },
+  { key: 'pieceDensity', label: 'Moved pieces share', min: 0, max: 1, step: 0.01, value: 0.5 },
   { key: 'edgeBreak', label: 'Broken edges', min: 0, max: 1, step: 0.01, value: 0.6 },
 
   { group: 'Slices' },
@@ -23,9 +23,9 @@ export const GLITCH_SCHEMA = [
   { key: 'sliceDensity', label: 'Active slices share', min: 0, max: 1, step: 0.01, value: 0.35 },
 
   { group: 'Pixels' },
-  { key: 'pixelSize', label: 'Pixel size (px)', min: 2, max: 64, step: 1, value: 18 },
-  { key: 'pixelDensity', label: 'Pixelated zones share', min: 0, max: 1, step: 0.01, value: 0.4 },
-  { key: 'smear', label: 'Smeared zones share', min: 0, max: 1, step: 0.01, value: 0.2 },
+  { key: 'pixelSize', label: 'Pixel size (px)', min: 2, max: 32, step: 1, value: 8 },
+  { key: 'pixelDensity', label: 'Pixelated zones share', min: 0, max: 1, step: 0.01, value: 0.25 },
+  { key: 'smear', label: 'Smeared zones share', min: 0, max: 1, step: 0.01, value: 0.15 },
   { key: 'posterize', label: 'Color levels (32 = off)', min: 2, max: 32, step: 1, value: 32 },
   { key: 'patchiness', label: 'Patchiness', min: 0, max: 1, step: 0.01, value: 0.7 },
 
@@ -120,15 +120,19 @@ export function createGlitchEffect() {
       gl.uniform1f(uniforms.uIntensity, intensity);
       gl.uniform1f(uniforms.uBurst, burst);
       gl.uniform1f(uniforms.uBurstSeed, burstSeed);
-      gl.uniform1f(uniforms.uRgbShift, params.rgbShift);
-      gl.uniform1f(uniforms.uSliceAmount, params.sliceAmount);
+      // Gli spostamenti sono tarati sul telefono e proporzionati alla persona inquadrata
+      // (renderer.personUnit): sul computer i pezzi non vanno più lontano, rispetto al corpo.
+      const toScreen = renderer.phoneWidthToScreenUv(1);
+      gl.uniform1f(uniforms.uRgbShift, params.rgbShift * toScreen);
+      gl.uniform1f(uniforms.uSliceAmount, params.sliceAmount * toScreen);
       gl.uniform1f(uniforms.uSliceCount, params.sliceCount);
       gl.uniform1f(uniforms.uSliceSpeed, params.sliceSpeed);
       gl.uniform1f(uniforms.uSliceDensity, params.sliceDensity);
       gl.uniform2f(uniforms.uResolution, renderer.canvas.width, renderer.canvas.height);
       // Dimensione in pixel CSS convertita in pixel del canvas: stessa resa anche sugli schermi retina.
-      // In più è proporzionale allo schermo: su un telefono i pixel non diventano enormi.
-      gl.uniform1f(uniforms.uPixelSize, params.pixelSize * dpr * renderer.screenUnit());
+      // In più è proporzionale alla persona inquadrata: stessa quantità di pixel sul corpo
+      // su telefono e computer (pixelSize è la misura sul telefono).
+      gl.uniform1f(uniforms.uPixelSize, params.pixelSize * dpr * renderer.personUnit());
       gl.uniform1f(uniforms.uPixelDensity, params.pixelDensity);
       gl.uniform1f(uniforms.uPosterize, params.posterize);
       gl.uniform1f(uniforms.uPatchiness, params.patchiness);
@@ -139,7 +143,7 @@ export function createGlitchEffect() {
       gl.uniform1f(uniforms.uScanlineSpacing, params.scanlineSpacing * dpr);
       gl.uniform1f(uniforms.uMaskThreshold, params.maskThreshold);
       gl.uniform1f(uniforms.uMaskFeather, params.maskFeather);
-      gl.uniform1f(uniforms.uPieceAmount, params.pieceAmount);
+      gl.uniform1f(uniforms.uPieceAmount, params.pieceAmount * toScreen);
       gl.uniform1f(uniforms.uPieceDensity, params.pieceDensity);
       gl.uniform1f(uniforms.uEdgeBreak, params.edgeBreak);
       gl.uniform1f(uniforms.uShowMask, showMask ? 1 : 0);

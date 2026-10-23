@@ -14,9 +14,12 @@
 // (vedi quality.js; sui telefoni molto meno, per non esaurire la memoria della GPU).
 const HISTORY_FRAMES = 32; // ~1 s a 30 fps
 
-// Le dimensioni nei parametri (sezioni e rettangoli) sono frazioni del lato corto dello schermo,
-// moltiplicate per questo valore: calibrato perché su un portatile restino come prima.
-const SIZE_REF = 1.8;
+// Sezioni e rettangoli sono misurati sul video, quindi hanno la stessa grandezza rispetto alla
+// persona su qualsiasi schermo. Questi fattori li tarano sul telefono in verticale, dove l'effetto
+// è stato regolato: i parametri restano gli stessi, cambia solo l'unità di misura.
+const CELL_K = 0.625; // lato delle sezioni, in larghezze del video, per cellSize = 1
+const RECT_W_K = 0.62; // larghezza dei rettangoli, in larghezze del video, per size = 1
+const RECT_H_K = 0.345; // altezza dei rettangoli, in larghezze del video, per size = 1
 const MAX_BLOCKS = 16; // deve coincidere con la dimensione degli array nello shader
 
 const COPY_FRAG = /* glsl */ `#version 300 es
@@ -136,17 +139,17 @@ export const TIMEBLOCKS_SCHEMA = [
   { key: 'split', label: 'Split amount (smaller sections)', min: 0, max: 1, step: 0.01, value: 0.65 },
   { key: 'slit', label: 'Slit-scan sections share', min: 0, max: 1, step: 0.01, value: 0.35 },
   { key: 'jitter', label: 'Shifted sections share', min: 0, max: 1, step: 0.01, value: 0.25 },
-  { key: 'baseDelay', label: 'Max delay (frames)', min: 2, max: HISTORY_FRAMES - 1, step: 1, value: 10 },
-  { key: 'baseDelayHand', label: 'Extra delay at full intensity', min: 0, max: HISTORY_FRAMES - 1, step: 1, value: 14 },
-  { key: 'liveShare', label: 'Live sections share', min: 0, max: 1, step: 0.01, value: 0.2 },
+  { key: 'baseDelay', label: 'Max delay (frames)', min: 2, max: HISTORY_FRAMES - 1, step: 1, value: 4 },
+  { key: 'baseDelayHand', label: 'Extra delay at full intensity', min: 0, max: HISTORY_FRAMES - 1, step: 1, value: 12 },
+  { key: 'liveShare', label: 'Live sections share', min: 0, max: 1, step: 0.01, value: 0.5 },
   { key: 'shuffle', label: 'Changes per second (per section)', min: 0, max: 4, step: 0.05, value: 1.2 },
 
   { group: 'Scattered time blocks' },
-  { key: 'rate', label: 'Blocks per second', min: 0, max: 20, step: 0.5, value: 6 },
-  { key: 'maxBlocks', label: 'Max blocks at once', min: 0, max: MAX_BLOCKS, step: 1, value: 8 },
+  { key: 'rate', label: 'Blocks per second', min: 0, max: 20, step: 0.5, value: 2.5 },
+  { key: 'maxBlocks', label: 'Max blocks at once', min: 0, max: MAX_BLOCKS, step: 1, value: 5 },
   { key: 'minSize', label: 'Min size', min: 0.02, max: 0.5, step: 0.01, value: 0.08 },
   { key: 'maxSize', label: 'Max size', min: 0.05, max: 0.8, step: 0.01, value: 0.3 },
-  { key: 'maxDelay', label: 'Max delay (frames)', min: 2, max: HISTORY_FRAMES - 1, step: 1, value: 24 },
+  { key: 'maxDelay', label: 'Max delay (frames)', min: 2, max: HISTORY_FRAMES - 1, step: 1, value: 12 },
   { key: 'freezeChance', label: 'Frozen blocks share', min: 0, max: 1, step: 0.01, value: 0.4 },
   { key: 'offsetChance', label: 'Offset blocks share', min: 0, max: 1, step: 0.01, value: 0.3 },
   { key: 'life', label: 'Average life (s)', min: 0.1, max: 2, step: 0.05, value: 0.6 },
@@ -306,10 +309,11 @@ export class TimeBlocks {
     const lerp = (a, b, t) => a + (b - a) * t;
 
     // Dimensioni: per lo più rettangoli medi, a volte strisce strette e alte (come nel collo del riferimento).
-    // Dimensioni misurate sullo schermo, poi convertite in UV del video. Larghezza e altezza
-    // usano scale diverse (la larghezza con SIZE_REF), così su un portatile restano come prima.
-    const [ux, uy] = this.renderer.shortSideToVideoUv(1);
-    let w = lerp(p.minSize, p.maxSize, Math.pow(rand(), 1.5)) * ux * SIZE_REF;
+    // In UV del video: x in larghezze, y in altezze (per questo l'altezza si moltiplica per l'aspetto).
+    const aspect = this.outputSize[0] / Math.max(this.outputSize[1], 1);
+    const ux = RECT_W_K;
+    const uy = RECT_H_K * aspect;
+    let w = lerp(p.minSize, p.maxSize, Math.pow(rand(), 1.5)) * ux;
     let h = lerp(p.minSize * 0.6, p.maxSize * 0.8, Math.pow(rand(), 1.5)) * uy;
     if (rand() < 0.25) {
       w *= 0.4;
@@ -339,7 +343,7 @@ export class TimeBlocks {
       // Un blocco congelato resta sul fotogramma in cui è nato: deve sparire prima che la storia lo sovrascriva.
       frozenLayer: frozen ? this.layerAgo(delay) : -1,
       life: frozen ? Math.min(p.life * (0.5 + rand()), 0.8) : p.life * (0.5 + rand()),
-      ox: shifted ? (rand() - 0.5) * 0.08 * ux * SIZE_REF : 0,
+      ox: shifted ? (rand() - 0.5) * 0.08 * ux : 0,
       oy: shifted ? (rand() - 0.5) * 0.05 * uy : 0,
     };
   }
@@ -372,9 +376,10 @@ export class TimeBlocks {
     gl.activeTexture(gl.TEXTURE2);
     gl.bindTexture(gl.TEXTURE_2D, this.renderer.maskTexture);
     gl.uniform1i(uniforms.uMask, 2);
-    // Le sezioni sono misurate sullo schermo, non sul video: così hanno la stessa grandezza
-    // apparente su un monitor e su un telefono in verticale (che mostra solo una parte del video).
-    gl.uniform2f(uniforms.uCellUv, ...this.renderer.shortSideToVideoUv(p.cellSize * SIZE_REF));
+    // Le sezioni sono misurate sul video (quadrate in pixel): stessa grandezza rispetto alla persona
+    // su un monitor e su un telefono in verticale.
+    const cell = p.cellSize * CELL_K;
+    gl.uniform2f(uniforms.uCellUv, cell, cell * (this.outputSize[0] / this.outputSize[1]));
     gl.uniform1f(uniforms.uSplit, p.split);
     gl.uniform1f(uniforms.uSlit, p.slit);
     gl.uniform1f(uniforms.uJitter, p.jitter);

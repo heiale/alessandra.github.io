@@ -99,7 +99,8 @@ const SEGMENTATION_SCHEMA = [
   { key: 'smoothing', label: 'Mask stability over time', min: 0, max: 0.9, step: 0.01 },
 ];
 
-const STORAGE_KEY = 'glitch-cam:tuning';
+// Versione nel nome: quando cambiano i valori di partenza, le vecchie regolazioni salvate non valgono più.
+const STORAGE_KEY = 'glitch-cam:tuning:v2';
 
 // Controlli mostrati nel pannello: solo i più utili. Gli altri parametri restano nel codice
 // (schemi degli effetti) con i loro valori, ma non compaiono qui.
