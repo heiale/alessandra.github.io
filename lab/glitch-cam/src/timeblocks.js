@@ -10,8 +10,9 @@
 // Il risultato è una nuova immagine "di partenza" (in coordinate del video), che gli effetti
 // usano al posto del video vero: renderer.source.texture.
 
+// Valori massimi: quanti fotogrammi e a che larghezza li teniamo dipende dal dispositivo
+// (vedi quality.js; sui telefoni molto meno, per non esaurire la memoria della GPU).
 const HISTORY_FRAMES = 32; // ~1 s a 30 fps
-const HISTORY_MAX_WIDTH = 960; // la storia è a risoluzione ridotta per stare leggera in memoria
 const MAX_BLOCKS = 16; // deve coincidere con la dimensione degli array nello shader
 
 const COPY_FRAG = /* glsl */ `#version 300 es
@@ -150,7 +151,10 @@ export const TIMEBLOCKS_SCHEMA = [
 
 export class TimeBlocks {
   /** @param {import('./gl.js').Renderer} renderer */
-  constructor(renderer) {
+  /** @param {{ frames?: number, maxWidth?: number }} options */
+  constructor(renderer, { frames = HISTORY_FRAMES, maxWidth = 960 } = {}) {
+    this.frames = Math.min(frames, HISTORY_FRAMES);
+    this.maxWidth = maxWidth;
     this.name = 'timeblocks';
     this.schema = TIMEBLOCKS_SCHEMA;
     this.params = Object.fromEntries(TIMEBLOCKS_SCHEMA.filter((p) => p.key).map((p) => [p.key, p.value]));
@@ -212,14 +216,14 @@ export class TimeBlocks {
 
   allocate(videoW, videoH) {
     const gl = this.gl;
-    const scale = Math.min(1, HISTORY_MAX_WIDTH / videoW);
+    const scale = Math.min(1, this.maxWidth / videoW);
     const hw = Math.round(videoW * scale);
     const hh = Math.round(videoH * scale);
     if (hw !== this.historySize[0] || hh !== this.historySize[1]) {
       if (this.history) gl.deleteTexture(this.history);
       this.history = gl.createTexture();
       gl.bindTexture(gl.TEXTURE_2D_ARRAY, this.history);
-      gl.texStorage3D(gl.TEXTURE_2D_ARRAY, 1, gl.RGBA8, hw, hh, HISTORY_FRAMES);
+      gl.texStorage3D(gl.TEXTURE_2D_ARRAY, 1, gl.RGBA8, hw, hh, this.frames);
       gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
       gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
       gl.texParameteri(gl.TEXTURE_2D_ARRAY, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -251,20 +255,20 @@ export class TimeBlocks {
     gl.viewport(0, 0, this.historySize[0], this.historySize[1]);
 
     // Il primo fotogramma riempie tutta la storia, così i ritardi non mostrano mai il nero.
-    const layers = this.stored === 0 ? [...Array(HISTORY_FRAMES).keys()] : [this.head];
+    const layers = this.stored === 0 ? [...Array(this.frames).keys()] : [this.head];
     for (const layer of layers) {
       gl.framebufferTextureLayer(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, this.history, 0, layer);
       this.renderer.drawQuad();
     }
     this.restoreScreen();
 
-    this.head = (this.head + 1) % HISTORY_FRAMES;
-    this.stored = this.stored === 0 ? HISTORY_FRAMES : Math.min(this.stored + 1, HISTORY_FRAMES);
+    this.head = (this.head + 1) % this.frames;
+    this.stored = this.stored === 0 ? this.frames : Math.min(this.stored + 1, this.frames);
   }
 
   /** Indice nella storia del fotogramma di `delay` fotogrammi fa. */
   layerAgo(delay) {
-    return (this.head - 1 - delay + HISTORY_FRAMES * 2) % HISTORY_FRAMES;
+    return (this.head - 1 - delay + this.frames * 2) % this.frames;
   }
 
   updateBlocks(dt, intensity, bbox) {
@@ -305,7 +309,8 @@ export class TimeBlocks {
     // Bordi agganciati a una griglia di 1/64: rettangoli puliti, allineati tra loro.
     const snap = (v) => Math.min(1, Math.max(0, Math.round(v * 64) / 64));
 
-    const delay = Math.round(lerp(3, Math.max(3, p.maxDelay), rand()));
+    // Mai oltre i fotogrammi che abbiamo davvero in memoria.
+    const delay = Math.min(Math.round(lerp(3, Math.max(3, p.maxDelay), rand())), this.frames - 1);
     const frozen = rand() < p.freezeChance;
     const shifted = rand() < p.offsetChance;
     return {
@@ -360,7 +365,7 @@ export class TimeBlocks {
     gl.uniform1f(uniforms.uShuffle, p.shuffle);
     gl.uniform1f(uniforms.uTime, this.time);
     gl.uniform1f(uniforms.uNewest, this.layerAgo(0));
-    gl.uniform1f(uniforms.uFrames, HISTORY_FRAMES);
+    gl.uniform1f(uniforms.uFrames, this.frames);
     this.renderer.drawQuad();
     this.restoreScreen();
   }

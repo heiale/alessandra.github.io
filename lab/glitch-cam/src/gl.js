@@ -11,8 +11,11 @@ void main() {
 }`;
 
 export class Renderer {
-  /** @param {HTMLCanvasElement} canvas */
-  constructor(canvas) {
+  /**
+   * @param {HTMLCanvasElement} canvas
+   * @param {{ maxPixelRatio?: number, renderScale?: number }} options
+   */
+  constructor(canvas, { maxPixelRatio = 2, renderScale = 1 } = {}) {
     const gl = canvas.getContext('webgl2', {
       alpha: false,
       antialias: false,
@@ -25,7 +28,10 @@ export class Renderer {
 
     this.canvas = canvas;
     this.gl = gl;
-    this.maxPixelRatio = 2;
+    this.maxPixelRatio = maxPixelRatio;
+    // Frazione della risoluzione a cui disegniamo; il browser poi ingrandisce il canvas a tutto schermo.
+    // Può essere abbassata durante l'esperienza (quality.js) se gli FPS calano.
+    this.renderScale = renderScale;
     this.videoSize = [1, 1];
 
     // Un solo VAO con due triangoli che coprono lo schermo, riusato da tutti gli effetti.
@@ -77,7 +83,7 @@ export class Renderer {
 
   /** Adatta il canvas alla finestra. Restituisce true se la dimensione è cambiata. */
   resize() {
-    const dpr = Math.min(window.devicePixelRatio || 1, this.maxPixelRatio);
+    const dpr = Math.min(window.devicePixelRatio || 1, this.maxPixelRatio) * this.renderScale;
     const width = Math.round(this.canvas.clientWidth * dpr);
     const height = Math.round(this.canvas.clientHeight * dpr);
     if (this.canvas.width === width && this.canvas.height === height) return false;

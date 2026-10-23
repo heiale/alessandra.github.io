@@ -125,6 +125,7 @@ export function createDebugPanel({ panel, overlay, effects, mapper }) {
     <h2>Status</h2>
     <dl class="debug__stats">
       <dt>Render FPS</dt><dd data-stat="fps">–</dd>
+      <dt>Quality</dt><dd data-stat="quality">–</dd>
       <dt>Hand tracking FPS</dt><dd data-stat="trackFps">–</dd>
       <dt>Hand model time</dt><dd data-stat="detectMs">–</dd>
       <dt>Hand delegate</dt><dd data-stat="delegate">–</dd>
@@ -259,7 +260,7 @@ export function createDebugPanel({ panel, overlay, effects, mapper }) {
     },
 
     /** Chiamato a ogni frame dal loop principale. */
-    update({ now, fps, tracker, segmenter, effects: active, hand, intensity, video }) {
+    update({ now, fps, tracker, segmenter, effects: active, hand, intensity, video, quality }) {
       if (panel.hidden) return;
       meter.style.width = `${(intensity * 100).toFixed(1)}%`;
       if (flags.showLandmarks) drawLandmarks(hand.present ? hand.landmarks : null, video);
@@ -268,6 +269,9 @@ export function createDebugPanel({ panel, overlay, effects, mapper }) {
       if (now - lastStatsUpdate < 250) return;
       lastStatsUpdate = now;
       stat.fps.textContent = fps.toFixed(0);
+      stat.quality.textContent = quality
+        ? `${quality.profile} · ${Math.round(quality.scale * 100)}%${quality.steps ? ` · lowered ×${quality.steps}` : ''}`
+        : '–';
       stat.trackFps.textContent = tracker?.running ? tracker.stats.fps.toFixed(0) : 'off';
       stat.detectMs.textContent = tracker?.running ? `${tracker.stats.ms.toFixed(1)} ms` : '–';
       stat.delegate.textContent = tracker?.delegate ?? 'loading';

@@ -14,7 +14,7 @@ export class CameraError extends Error {
  * Chiede il permesso e avvia la webcam frontale.
  * @returns {Promise<{ video: HTMLVideoElement, stream: MediaStream, stop: () => void }>}
  */
-export async function startCamera() {
+export async function startCamera({ width = 1280, height = 720 } = {}) {
   if (!window.isSecureContext) {
     // getUserMedia esiste solo su https o localhost.
     throw new CameraError('insecure', 'The webcam only works on an https page or locally.');
@@ -29,9 +29,10 @@ export async function startCamera() {
       audio: false,
       video: {
         facingMode: 'user',
-        // 720p basta: il tracking lavora comunque su un'immagine ridotta e lo shader resta leggero.
-        width: { ideal: 1280 },
-        height: { ideal: 720 },
+        // 720p sul computer, meno sui telefoni (vedi quality.js): il tracking lavora comunque
+        // su un'immagine ridotta, e un video più piccolo pesa meno da copiare sulla GPU.
+        width: { ideal: width },
+        height: { ideal: height },
         frameRate: { ideal: 30 },
       },
     });

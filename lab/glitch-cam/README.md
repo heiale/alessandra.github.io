@@ -118,6 +118,11 @@ Il pannello debug costruisce gli slider da `schema` in automatico.
 - I modelli provano prima la GPU e, se non è disponibile, passano alla CPU (il delegate in uso è
   visibile nel pannello debug). Se la segmentazione non parte, il glitch copre tutta l'immagine.
 - La risoluzione del canvas è limitata a 2× la densità dello schermo.
+- **Telefoni** (`src/quality.js`): webcam a 640×480, effetto disegnato al 75% con densità 1, modelli
+  a 15 Hz, memoria del passato ridotta (20 fotogrammi a 480 px invece di 32 a 960 px).
+- **Qualità adattiva** (tutti i dispositivi): se gli FPS restano sotto 24 per più di 1,5 s, la
+  qualità scende a gradini, prima la risoluzione dell'effetto e poi la frequenza dei modelli.
+  Nel pannello debug, la riga "Quality" mostra profilo, scala e gradini scesi.
 
 ## Privacy
 

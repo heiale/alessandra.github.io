@@ -9,6 +9,7 @@ import { startCamera } from './camera.js';
 import { Renderer } from './gl.js';
 import { BackgroundPlate } from './background.js';
 import { TimeBlocks } from './timeblocks.js';
+import { QUALITY, IS_MOBILE, AdaptiveQuality } from './quality.js';
 import { HandTracker, GestureMapper } from './tracking.js';
 import { PersonSegmenter } from './segmentation.js';
 import { EFFECTS, ACTIVE_EFFECTS } from './effects/index.js';
@@ -25,6 +26,7 @@ playBootGlitch();
 // Creati una sola volta, alla prima attivazione.
 let renderer = null;
 let effects = [];
+let adaptive = null;
 let debug = null;
 const mapper = new GestureMapper();
 
@@ -47,7 +49,7 @@ const NO_HAND = {
 async function start() {
   intro.setLoading('Turning on the webcam…');
   try {
-    camera = await startCamera();
+    camera = await startCamera(QUALITY.camera);
   } catch (err) {
     console.error(err);
     intro.setError(err.code ?? 'unknown');
@@ -57,12 +59,13 @@ async function start() {
   if (!renderer) {
     let code = 'webgl';
     try {
-      renderer = new Renderer(canvas);
+      renderer = new Renderer(canvas, { maxPixelRatio: QUALITY.maxPixelRatio, renderScale: QUALITY.renderScale });
       code = 'effect';
       // Lo sfondo imparato nel tempo, condiviso da tutti gli effetti (renderer.background.texture).
       renderer.background = new BackgroundPlate(renderer);
       // Blocchi nel tempo: l'immagine di partenza per gli effetti (renderer.source.texture).
-      renderer.source = new TimeBlocks(renderer); // da qui in poi un errore è dello shader, non del supporto WebGL
+      renderer.source = new TimeBlocks(renderer, { frames: QUALITY.historyFrames, maxWidth: QUALITY.historyWidth });
+      adaptive = new AdaptiveQuality({ renderer, getModels: () => [tracker, segmenter] });
       effects = ACTIVE_EFFECTS.map((name) => EFFECTS[name]());
       effects.forEach((effect) => effect.init(renderer));
     } catch (err) {
@@ -96,8 +99,9 @@ async function start() {
 /** Carica in parallelo mano e segmentazione; ognuno parte appena è pronto. */
 async function startVision(video) {
   hint.show('Loading tracking…');
-  const hands = new HandTracker(video, { targetFps: 30 });
-  const person = new PersonSegmenter(video, { targetFps: 30 });
+  // Frequenza dei modelli secondo il dispositivo (vedi quality.js).
+  const hands = new HandTracker(video, { targetFps: QUALITY.modelFps });
+  const person = new PersonSegmenter(video, { targetFps: QUALITY.modelFps });
   tracker = hands;
   segmenter = person;
   maskVersion = -1;
@@ -162,6 +166,7 @@ function frame(now) {
   const dt = Math.min((now - lastFrame) / 1000, 0.1);
   lastFrame = now;
   if (dt > 0) fps += (1 / dt - fps) * 0.05;
+  adaptive.update(fps, dt);
 
   renderer.resize();
   const newFrame = renderer.uploadVideo(camera.video);
@@ -184,7 +189,17 @@ function frame(now) {
     effect.render();
   }
 
-  debug.update({ now, fps, tracker, segmenter, effects: [renderer.source, ...effects], hand, intensity, video: camera.video });
+  debug.update({
+    now,
+    fps,
+    tracker,
+    segmenter,
+    effects: [renderer.source, ...effects],
+    hand,
+    intensity,
+    video: camera.video,
+    quality: { profile: IS_MOBILE ? 'mobile' : 'desktop', scale: renderer.renderScale, steps: adaptive.level },
+  });
 }
 
 // Solo in sviluppo (npm run dev): accesso dalla console per provare gli effetti senza webcam o mano.
@@ -198,6 +213,12 @@ if (import.meta.env.DEV) {
     },
     get source() {
       return renderer?.source;
+    },
+    get adaptive() {
+      return adaptive;
+    },
+    get renderer() {
+      return renderer;
     },
     mapper,
   };
