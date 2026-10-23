@@ -19,8 +19,6 @@ import { playBootGlitch } from './boot.js';
 
 const canvas = document.getElementById('stage');
 const intro = createIntro(document.getElementById('intro'), { onStart: start });
-// Sul telefono non c'è il pannello debug: il suggerimento non nomina il tasto D.
-if (IS_MOBILE) document.getElementById('hint').textContent = 'Move to break apart · Open your hand for more · Make a fist to stop';
 const hint = createHint(document.getElementById('hint'));
 
 // Entrata della pagina con effetto glitch.
