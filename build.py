@@ -665,6 +665,11 @@ def media(file, alt, ratio, cls="", style="", overlay=None):
     classes = " ".join(c for c in ("media", cls) if c)
     if file.endswith(".mp4"):
         inner = animation(file)
+        # A still of the same frame sits behind the video, so the box is never empty while the
+        # video loads or when the phone does not autoplay it (e.g. iOS Low Power Mode).
+        still = file.replace(".mp4", "-still.jpg")
+        if (ROOT / "assets" / "img" / still).exists():
+            style = f"background: url(assets/img/{still}?v={VERSION}) center / cover" + ("; " + style if style else "")
     else:
         inner = f'<img src="assets/img/{file}?v={VERSION}" alt="{escape(alt)}" loading="lazy">'
     if overlay:
@@ -1036,7 +1041,7 @@ def build_case(slug):
                     f'{media(row[1], alt(), row[3])}{media(row[2], alt(), row[3], overlay=row[4] if len(row) > 4 else None)}</div></div>')
         caption = row[3] if len(row) > 3 else None
         width = row[4] if len(row) > 4 else None
-        figure = media(row[1], alt(), row[2], style=f"width: {width * 100:.2f}%" if width else "")
+        figure = media(row[1], alt(), row[2], cls="narrow" if width else "", style=f"width: {width * 100:.2f}%" if width else "")
         caption_html = f'<p class="caption">{escape(caption)}</p>' if caption else ""
         return f'<div class="grid"><div class="col-r bleed">{figure}{caption_html}</div></div>'
 

@@ -677,6 +677,9 @@ main { margin-top: calc(-1 * var(--header-h)); }
   .grid:not(.site-header):not(.pair) > * { grid-column: 1 / -1; }
   /* Project facts: three per row on tablets, two on phones. */
   .grid.case-facts > .fact { grid-column: span 4; }
+  /* Images stop at the page margin on both sides (on desktop they run to the right edge). */
+  .bleed { margin-right: 0; }
+  .media.narrow { margin-left: auto; margin-right: auto; }
   .story-chapter .col-l .story-h { position: static; margin-bottom: var(--gap-s); }
   .cv-heading, .cv-body, .cv-sec--about .cv-body { grid-column: 1 / -1; }
   .cv-body { margin-top: var(--gap-s); }
