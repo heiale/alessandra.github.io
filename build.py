@@ -1081,10 +1081,12 @@ def build_case(slug):
     prev_slug = PROJECT_ORDER[pos - 1]
     next_slug = PROJECT_ORDER[(pos + 1) % len(PROJECT_ORDER)]
     project_nav = (
-        f'<a class="pn-link pn-prev" href="{prev_slug}.html" aria-label="Previous project: {escape(PROJECTS[prev_slug]["name"])}">'
-        f'<span class="pn-arrow" aria-hidden="true">←</span>{escape(PROJECTS[prev_slug]["name"])}</a>'
-        f'<a class="pn-link pn-next" href="{next_slug}.html" aria-label="Next project: {escape(PROJECTS[next_slug]["name"])}">'
-        f'{escape(PROJECTS[next_slug]["name"])}<span class="pn-arrow" aria-hidden="true">→</span></a>'
+        f'<a class="pn-link pn-prev" href="{prev_slug}.html">'
+        f'<span class="pn-label"><span class="pn-arrow" aria-hidden="true">←</span><span class="pn-word"> Previous</span></span>'
+        f'<span class="pn-title">{escape(PROJECTS[prev_slug]["name"])}</span></a>'
+        f'<a class="pn-link pn-next" href="{next_slug}.html">'
+        f'<span class="pn-label"><span class="pn-word">Next </span><span class="pn-arrow" aria-hidden="true">→</span></span>'
+        f'<span class="pn-title">{escape(PROJECTS[next_slug]["name"])}</span></a>'
     )
 
     # Opening: title, then a row of small labelled facts, then the first image as wide as the content.

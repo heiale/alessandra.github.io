@@ -750,9 +750,23 @@ main { margin-top: calc(-1 * var(--header-h)); }
 .project-nav { display: flex; justify-content: space-between; align-items: baseline; gap: var(--gutter); margin: var(--gap-m) var(--margin) 0; padding-top: var(--gap-s); border-top: 1px solid var(--ink); }
 .pn-link { display: inline-flex; align-items: baseline; gap: 0.4em; font-size: clamp(18px, 1.875vw, 40px); font-weight: 500; line-height: 1.2; }
 .pn-next { margin-left: auto; text-align: right; }
+.pn-label { font-family: var(--f-mono); }
+/* Desktop: arrow and project name on one line, the word Previous/Next is for phones only. */
+.pn-word { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.pn-next .pn-label { order: 2; }
 .pn-arrow { display: inline-block; transition: transform 0.2s ease; }
 .pn-prev:hover .pn-arrow, .pn-prev:focus-visible .pn-arrow { transform: translateX(-0.25em); }
 .pn-next:hover .pn-arrow, .pn-next:focus-visible .pn-arrow { transform: translateX(0.25em); }
+@media (max-width: 599px) {
+  /* Previous / next as on alessiagarofalo.com: small grey label above, project name below. */
+  .project-nav { border-top-color: rgba(0, 0, 0, 0.12); padding-top: 20px; }
+  .pn-link { flex-direction: column; align-items: flex-start; gap: 4px; font-size: 16px; font-weight: 400; }
+  .pn-next { align-items: flex-end; }
+  .pn-next .pn-label { order: 0; }
+  .pn-label { font-size: 12px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--grey); }
+  .pn-word { position: static; width: auto; height: auto; overflow: visible; clip: auto; }
+  .pn-label .pn-arrow { transform: none !important; }
+}
 
 /* Desktop: text grows more slowly with the window and stops sooner, so it reads at a
    comfortable size on laptop and desktop screens. Phones and tablets keep the sizes above. */
