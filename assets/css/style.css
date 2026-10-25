@@ -607,6 +607,7 @@ main { margin-top: calc(-1 * var(--header-h)); }
 /* ---------- Figma design: typefaces and page parts ---------- */
 
 .site-header, .menu, .statement, .display, .story-h, .cv-heading, .stat-n, .proj-name,
+.f-name, .f-bottom, .hero h1, .pn-link { font-family: var(--f-intl); }
 .label, .fact dt, .step-label, .stat-label, .cv-cat, .cv-when, .takeaway-n, .about-tags, .proj-tags,
 .figure-label { font-family: var(--f-mono); }
 .case-title, .page-title { font-family: var(--f-cond); font-size: clamp(48px, 8.28vw, 170px); font-weight: 400; line-height: 1; letter-spacing: -0.03em; }
@@ -746,7 +747,6 @@ main { margin-top: calc(-1 * var(--header-h)); }
 }
 
 /* Previous / next project at the end of a project page */
-.f-name, .f-bottom, .hero h1, .pn-link { font-family: var(--f-intl); }
 .project-nav { display: flex; justify-content: space-between; align-items: baseline; gap: var(--gutter); margin: var(--gap-m) var(--margin) 0; padding-top: var(--gap-s); border-top: 1px solid var(--ink); }
 .pn-link { display: inline-flex; align-items: baseline; gap: 0.4em; font-size: clamp(18px, 1.875vw, 40px); font-weight: 500; line-height: 1.2; }
 .pn-next { margin-left: auto; text-align: right; }
