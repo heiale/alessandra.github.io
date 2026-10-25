@@ -19,7 +19,6 @@ NAV = [("About", "about.html"), ("Projects", "index.html"), ("Laboratory", "labo
 PROJECTS = {
     "lego-replay": {
         "name": "LEGO Replay",
-        "short": "A circular LEGO rental service.",
         "intro": "I designed a circular LEGO rental service that extends the life of bricks and makes it easy to "
                  "borrow, return, and reuse sets — at home, in-store, and for operators.",
         "tags": "Service design, UX/UI, Circular economy, Research, Benchmarking",
@@ -125,7 +124,6 @@ PROJECTS = {
     },
     "opta": {
         "name": "Opta",
-        "short": "A tactile-first shared-car HMI.",
         "intro": "I designed an HMI concept for a shared “third-space” car in collaboration with Italdesign, "
                  "tailored to an average user who values practicality, comfort, and affordability—combining a "
                  "modern infotainment system with intuitive, low-distraction interaction through physical "
@@ -182,7 +180,6 @@ PROJECTS = {
     },
     "threads-of-silk": {
         "name": "Threads of Silk",
-        "short": "Community storytelling across touchpoints.",
         "intro": "I designed a three-touchpoint storytelling system for the Silk Museum in Como, turning donated "
                  "artefacts into a visible network of community stories — in the museum, online, and for staff.",
         "tags": "UX/UI, Research, Multi-touchpoint experience",
@@ -278,7 +275,6 @@ PROJECTS = {
     },
     "mediant": {
         "name": "MEDIANT",
-        "short": "An AI assistant for medical visits.",
         "intro": "I designed an AI-powered platform that reduces documentation burden during medical visits, "
                  "helping doctors stay focused on patient communication while keeping records accurate and "
                  "complete.",
@@ -333,7 +329,6 @@ PROJECTS = {
     },
     "apopsi": {
         "name": "Apopsi",
-        "short": "Culture clubs for Gen Z in Milan.",
         "intro": "I designed a multi-touchpoint campaign and app for Milan that helps Gen Z reconnect with "
                  "cinema, theatre, and literature through community-driven discovery and in-person clubs.",
         "tags": "Graphic design, UX/UI, App design, Community building, Cultural engagement",
@@ -392,7 +387,6 @@ PROJECTS = {
 # Internship under NDA: the page describes the process and my role, without showing the designs.
 PROJECTS["logitech"] = {
     "name": "Logitech",
-    "short": "Account experience for Logitech’s gaming software.",
     "intro": "During my three-month UX internship at Logitech G, I contributed to the evolution of the G HUB Account "
              "experience, focusing on understanding player needs, improving information architecture, and exploring "
              "more intuitive ways for users to interact with their gaming ecosystem.\n\n"
@@ -553,16 +547,6 @@ for _slug, _chapters in CHAPTER_VISUALS.items():
 
 PROJECT_ROWS = [["logitech", "lego-replay"], ["threads-of-silk", "opta"], ["mediant", "apopsi"]]
 PROJECT_ORDER = [slug for row in PROJECT_ROWS for slug in row]
-
-# Related projects shown at the end of each project page (as in Figma).
-RELATED = {
-    "logitech": ["opta", "lego-replay"],
-    "lego-replay": ["opta", "threads-of-silk"],
-    "threads-of-silk": ["mediant", "opta"],
-    "opta": ["threads-of-silk", "lego-replay"],
-    "mediant": ["apopsi", "lego-replay"],
-    "apopsi": ["mediant", "threads-of-silk"],
-}
 
 # One-sentence description for each project card on the Projects page.
 # Categories on the Projects page, from one fixed vocabulary so projects can be compared:
@@ -1083,12 +1067,16 @@ def build_case(slug):
         chips = "".join(f"<li>{escape(m[0].upper() + m[1:])}</li>" for m in methods.split(", "))
         flow.append(section("Methods", f'<ul class="chips">{chips}</ul>'))
 
-    # Closing: related projects, one row each; on hover the row turns grey and an arrow appears.
-    related_rows = "".join(
-        f'<li><a class="related-row grid" href="{r}.html"><span class="related-text">'
-        f'<span class="related-arrow" aria-hidden="true">→</span><span class="related-name">{escape(PROJECTS[r]["name"])}</span> '
-        f'<span class="related-short">{escape(PROJECTS[r]["short"])}</span></span></a></li>'
-        for r in RELATED[slug]
+    # Closing: the previous project on the left, the next one on the right (the order of the
+    # Projects page, looping around).
+    pos = PROJECT_ORDER.index(slug)
+    prev_slug = PROJECT_ORDER[pos - 1]
+    next_slug = PROJECT_ORDER[(pos + 1) % len(PROJECT_ORDER)]
+    project_nav = (
+        f'<a class="pn-link pn-prev" href="{prev_slug}.html" aria-label="Previous project: {escape(PROJECTS[prev_slug]["name"])}">'
+        f'<span class="pn-arrow" aria-hidden="true">←</span>{escape(PROJECTS[prev_slug]["name"])}</a>'
+        f'<a class="pn-link pn-next" href="{next_slug}.html" aria-label="Next project: {escape(PROJECTS[next_slug]["name"])}">'
+        f'{escape(PROJECTS[next_slug]["name"])}<span class="pn-arrow" aria-hidden="true">→</span></a>'
     )
 
     # Opening: title, then a row of small labelled facts, then the first image as wide as the content.
@@ -1123,10 +1111,7 @@ def build_case(slug):
 </section>
 {image_rows("Overview")}
 {"".join(flow)}
-<section class="related page-end">
-  <div class="grid"><h2 class="related-h m12">Related Projects</h2></div>
-  <ul class="related-list">{related_rows}</ul>
-</section>"""
+<nav class="project-nav page-end" aria-label="More projects">{project_nav}</nav>"""
     page(f"{slug}.html", f'{p["name"]} · {NAME}', body, p["intro"].replace("\n\n", " "))
 
 
