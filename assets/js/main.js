@@ -5,11 +5,34 @@
   if (!toggle || !menu) return;
   var close = menu.querySelector('.menu-close');
 
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  // Opening: the menu unrolls from the top down (CSS). Closing: it rolls back up, then hides.
   function setOpen(open) {
-    menu.hidden = !open;
     toggle.setAttribute('aria-expanded', String(open));
     document.body.style.overflow = open ? 'hidden' : '';
-    (open ? close : toggle).focus();
+    if (open) {
+      menu.classList.remove('is-closing');
+      menu.hidden = false;
+      close.focus();
+      return;
+    }
+    toggle.focus();
+    if (reduceMotion.matches) { menu.hidden = true; return; }
+    menu.classList.add('is-closing');
+    var finished = false;
+    function finish() {
+      if (finished) return;
+      finished = true;
+      menu.removeEventListener('animationend', onEnd);
+      if (menu.classList.contains('is-closing')) {
+        menu.classList.remove('is-closing');
+        menu.hidden = true;
+      }
+    }
+    function onEnd(e) { if (e.target === menu) finish(); }  // ignore the links' own animations
+    menu.addEventListener('animationend', onEnd);
+    setTimeout(finish, 500);  // in case the animation does not run at all
   }
 
   toggle.addEventListener('click', function () { setOpen(true); });

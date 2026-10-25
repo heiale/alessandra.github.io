@@ -180,6 +180,20 @@ main { margin-top: calc(-1 * var(--header-h)); }
   .menu { background: rgba(255, 255, 255, 0.94); }
 }
 .menu[hidden] { display: none; }
+/* Opens from the top down, closes back up. */
+.menu:not([hidden]) { animation: menu-down 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
+.menu.is-closing { animation: menu-up 0.35s cubic-bezier(0.55, 0.06, 0.68, 0.19) both; pointer-events: none; }
+.menu:not([hidden]) .menu-links a { animation: menu-item 0.4s 0.15s cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
+.menu:not([hidden]) .menu-links a:nth-child(2) { animation-delay: 0.2s; }
+.menu:not([hidden]) .menu-links a:nth-child(3) { animation-delay: 0.25s; }
+.menu:not([hidden]) .menu-links a:nth-child(4) { animation-delay: 0.3s; }
+.menu.is-closing .menu-links a { animation: none; }
+@keyframes menu-down { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes menu-up { from { clip-path: inset(0 0 0 0); } to { clip-path: inset(0 0 100% 0); } }
+@keyframes menu-item { from { opacity: 0; transform: translateY(-12px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .menu:not([hidden]), .menu:not([hidden]) .menu-links a { animation: none; }
+}
 .menu-top {
   display: flex;
   align-items: center;
