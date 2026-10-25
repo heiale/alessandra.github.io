@@ -818,7 +818,7 @@ def build_about():
 # laboratory/<slug>/ (Glitch Cam is built from lab/glitch-cam with `npm run build`).
 # An experiment with "url" runs on its own server: laboratory/<slug>/ is then a small waiting page
 # that wakes the server and opens the game (see build_lab_wake). "hidden" keeps the card off the
-# Laboratory page, e.g. until the server is online.
+# Laboratory page and skips the waiting page, e.g. until the server is online.
 EXPERIMENTS = [
     {
         "slug": "glitch-cam",
@@ -837,7 +837,8 @@ EXPERIMENTS = [
         "tags": ["AI", "Drawing", "Game"],
         # Render server that serves the game (lab/pictionary-ai, deploy steps in DEPLOY.md).
         "url": "https://pictionary-ai.onrender.com",
-        # Remove once the server is online and a full game works there.
+        # Remove once the server is online and a full game works there (also brings back the
+        # waiting page in laboratory/pictionary-ai/). Project on hold since October 2026.
         "hidden": True,
     },
 ]
@@ -1120,7 +1121,7 @@ if __name__ == "__main__":
     build_projects()
     build_laboratory()
     for e in EXPERIMENTS:
-        if e.get("url"):
+        if e.get("url") and not e.get("hidden"):
             build_lab_wake(e)
     for s in PROJECTS:
         build_case(s)
