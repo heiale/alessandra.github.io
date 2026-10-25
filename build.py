@@ -124,12 +124,13 @@ PROJECTS = {
     },
     "opta": {
         "name": "Opta",
-        "intro": "I designed an HMI concept for a shared “third-space” car in collaboration with Italdesign, "
-                 "tailored to an average user who values practicality, comfort, and affordability—combining a "
-                 "modern infotainment system with intuitive, low-distraction interaction through physical "
-                 "controls and voice.",
+        "intro": ("Italdesign asked us to imagine the shared car of 2035. Car sharing is convenient and sustainable, "
+                  "but it rarely feels personal. With a team of six, I designed Opta: an HMI and companion app that "
+                  "turn a shared vehicle into a personal “third space”, where users pick a mode and the car adapts "
+                  "lighting, temperature and seating, controlled through a physical knob or voice."),
         "tags": "Human–Machine Interaction, UX/UI, Research, Prototyping",
         "facts": [
+            ("Context", "Digital Design Studio, Politecnico di Milano · challenge by Italdesign"),
             ("Timeline", "Sept – Dec 2024"),
             ("Team", "6 (interactive designers, architects, computer engineer)"),
             ("My focus", "Ideation, wireframing, prototyping"),
@@ -147,15 +148,16 @@ PROJECTS = {
                     "load and distraction. Shared mobility within small trusted circles adds new needs: "
                     "personalization, quick handover between users, and a car that feels like a “third space” "
                     "beyond home and work.",
-                    "A literature review, shadowing, interviews and a focus group pointed to the same pain "
-                    "points: complex interfaces and touchscreen overuse.",
+                    "A literature review, shadowing, interviews and a focus group with the Dynamics Racing Team "
+                    "Polimi pointed to the same pain points: complex interfaces and touchscreen overuse.",
                 ],
             },
             {
                 "title": "Outcome",
                 "lead": "A coherent HMI and companion app experience for a shared vehicle service.",
                 "text": [[
-                    "Personalized journeys: users set the atmosphere for each trip and quickly return to defaults.",
+                    "Personalized journeys: each mode combines lighting, temperature and seating into a ready-made "
+                    "atmosphere that users pick and fine-tune, then quickly return to defaults.",
                     "Dual interaction model: key functions controlled via a physical knob or voice assistant.",
                     "Clear information hierarchy: only the most relevant driving and comfort information is "
                     "surfaced.",
@@ -275,13 +277,15 @@ PROJECTS = {
     },
     "mediant": {
         "name": "MEDIANT",
-        "intro": "I designed an AI-powered platform that reduces documentation burden during medical visits, "
-                 "helping doctors stay focused on patient communication while keeping records accurate and "
-                 "complete.",
+        "intro": ("In Italian healthcare, documentation eats into visit time and turns booking a check-up into a "
+                  "chaotic experience. I designed MEDIANT, an AI-powered service with two connected touchpoints: a web "
+                  "platform that compiles visit files and flags anomalies in test results for doctors, and an app where "
+                  "patients find reports, next steps and voice help with medical terms."),
         "tags": "AI platform design, UX/UI, Service design, Healthcare",
         "facts": [
+            ("Context", "Envisioning AI through Design, Politecnico di Milano"),
             ("Timeline", "Feb – Jun 2024"),
-            ("Team", "5 people (graphic designers, architect, IT specialist)"),
+            ("Team", "4 people (graphic designers, architect, IT specialist)"),
             ("My focus", "ideation, AI research, user research, UX/UI design, testing"),
             ("Tools", "Figma, Adobe Suite"),
             ("Methods", "Desk research, brainwriting, benchmarking + case studies, in-depth interviews with "
@@ -306,9 +310,9 @@ PROJECTS = {
                 "lead": "A service concept and interface system made of two coordinated touchpoints.",
                 "text": [[
                     "Doctor platform (web): a dashboard for appointments, patients and medical histories, with "
-                    "voice notes and AI-generated visit summaries.",
+                    "voice notes, AI-generated visit summaries and AI flagging anomalies in recent test results.",
                     "Patient app (mobile): secure access to health information, appointment booking, health "
-                    "data monitoring and a voice assistant.",
+                    "data monitoring, a next-steps guide after each visit and a voice assistant.",
                 ],
                     "The two sides exchange information continuously: the doctor easily finds patient "
                     "information, which the patient keeps updated through the app.",
@@ -329,10 +333,12 @@ PROJECTS = {
     },
     "apopsi": {
         "name": "Apopsi",
-        "intro": "I designed a multi-touchpoint campaign and app for Milan that helps Gen Z reconnect with "
-                 "cinema, theatre, and literature through community-driven discovery and in-person clubs.",
+        "intro": ("Milan has a rich cultural scene, but Gen Z rarely engages with it. I designed Apopsi, an app and "
+                  "city campaign that helps young people discover cinema, theatre and books through reviews, posts and "
+                  "in-person clubs, launched with posters, QR stickers and an Instagram page."),
         "tags": "Graphic design, UX/UI, App design, Community building, Cultural engagement",
         "facts": [
+            ("Context", "Final Design Studio, Politecnico di Milano"),
             ("Timeline", "Sep 2022 – Jan 2023"),
             ("Team", "5 people"),
             ("My focus", "UX/UI design, user research, prototyping, usability testing"),
@@ -349,7 +355,8 @@ PROJECTS = {
                     "cinemas, theatres, libraries, and bookstores. Existing initiatives often fail to speak "
                     "their language.",
                     "Desk and field research showed that their exposure to literature and theatre is mostly "
-                    "mediated by school rather than by direct participation.",
+                    "mediated by school rather than by direct participation. The findings were turned into "
+                    "infographics to map the design opportunities.",
                 ],
             },
             {
@@ -360,8 +367,8 @@ PROJECTS = {
                     "Discover (app): a feed of films, shows and books, with reviews and an “Upcoming” list.",
                     "Explore (Extra): behind-the-scenes content, trivia, interviews and club updates.",
                     "Contribute (Upload): reviews, ratings and posts personalized with stickers.",
-                    "Activate (city touchpoints): posters and QR-code stickers in high-traffic areas such as "
-                    "Garibaldi, Centrale and Piola.",
+                    "Activate (city campaign): three kinds of posters and QR-code stickers in high-traffic areas "
+                    "such as Garibaldi, Centrale and Piola, plus an Instagram page.",
                     "Connect (clubs): cinema, theatre and book clubs that turn digital interest into real "
                     "interaction.",
                 ],
@@ -1082,7 +1089,7 @@ def build_case(slug):
 
     # Opening: title, then a row of small labelled facts, then the first image as wide as the content.
     facts = dict(p.get("facts", []))
-    fact_items = [("Role", escape(facts["Role"]))] if "Role" in facts else []
+    fact_items = [(k, escape(facts[k])) for k in ("Context", "Role") if k in facts]
     fact_items += [
         ("Timeline", escape(facts["Timeline"])),
         ("Team", escape(facts["Team"])),
