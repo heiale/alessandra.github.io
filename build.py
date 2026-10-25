@@ -712,7 +712,7 @@ def page(filename, title, body, description):
 </header>
 <div class="menu" id="menu" hidden>
   <div class="menu-top"><a href="index.html">{NAME}</a><button class="menu-close" type="button">Close</button></div>
-  <nav class="menu-links" aria-label="Mobile">{plain_links}<a href="mailto:{EMAIL}">Let’s Talk</a></nav>
+  <nav class="menu-links" aria-label="Mobile">{plain_links}<a class="menu-talk" href="mailto:{EMAIL}">Let’s Talk</a></nav>
 </div>
 <main>
 {body}
