@@ -10,6 +10,10 @@ html, body {
   color: #eef3ee;
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   -webkit-tap-highlight-color: transparent;
+  /* A long press on the pond must not select text or open the phone's menu. */
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 
 #pond {
@@ -37,8 +41,9 @@ html, body {
 
 /* Round button with just the ✕. */
 .back-link {
-  top: 16px;
-  right: 16px;
+  /* Clear of the notch and rounded corners on phones. */
+  top: max(16px, env(safe-area-inset-top));
+  right: max(16px, env(safe-area-inset-right));
   display: grid;
   place-items: center;
   width: 40px;
@@ -64,3 +69,19 @@ html, body {
 }
 
 .hint.is-faded { opacity: 0; }
+
+/* Opening (pond.js): the page starts white like the portfolio and the pond fades in; the ✕
+   and the hint follow a moment later. */
+html { transition: background 1.2s ease; }
+html.opening, html.opening body { background: #fff; }
+#pond { transition: opacity 1.2s ease; }
+.back-link { transition: background 0.15s ease, color 0.15s ease, opacity 0.6s ease 0.8s; }
+.hint { transition-delay: 0.8s; }
+.hint.is-faded { transition-delay: 0s; }
+html.opening #pond,
+html.opening .back-link,
+html.opening .hint { opacity: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  #pond, .back-link, .hint { transition: none; }
+}

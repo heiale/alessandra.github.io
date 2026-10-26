@@ -57,21 +57,29 @@
 
   // ---------- Size ----------
 
+  // Cells along the longer side are capped, so a very large screen is not slower than a laptop.
+  const MAX_CELLS = 170000;
+  let cellCss = 0;
+
   function resize() {
     const vw = window.innerWidth, vh = window.innerHeight;
     if (!vw || !vh) return; // not laid out yet (e.g. a hidden tab)
     // Each cell is a whole number of device pixels, so the pixels stay perfectly square and sharp.
     const dpr = window.devicePixelRatio || 1;
-    const cell = Math.max(2, Math.round((vw < 700 ? 2.7 : 3) * dpr));
-    const oldW = W, oldH = H;
-    W = Math.ceil((vw * dpr) / cell);
-    H = Math.ceil((vh * dpr) / cell);
+    const cell = Math.max(2, Math.round((vw < 700 ? 2.7 : 3) * dpr), Math.ceil(Math.sqrt((vw * vh * dpr * dpr) / MAX_CELLS)));
+    const newW = Math.ceil((vw * dpr) / cell), newH = Math.ceil((vh * dpr) / cell);
+    const oldCss = cellCss;
+    cellCss = cell / dpr;
+    canvas.style.width = (newW * cell) / dpr + "px";
+    canvas.style.height = (newH * cell) / dpr + "px";
+    canvas.cellCss = cellCss;
+    if (newW === W && newH === H) return; // e.g. a phone's address bar moved, but no cell changed
+
+    const oldW = W, oldH = H, oldCur = cur, oldPrev = prev;
+    W = newW; H = newH;
     SHORT = Math.min(W, H);
     canvas.width = W;
     canvas.height = H;
-    canvas.style.width = (W * cell) / dpr + "px";
-    canvas.style.height = (H * cell) / dpr + "px";
-    canvas.cellCss = cell / dpr;
     cur = new Float32Array(W * H);
     prev = new Float32Array(W * H);
     image = ctx.createImageData(W, H);
@@ -82,29 +90,66 @@
 
     if (!oldW) {
       populate();
-    } else {
-      const sx = W / oldW, sy = H / oldH;
-      for (const f of fish) { for (const p of f.pts) { p.x *= sx; p.y *= sy; } f.goal = null; }
-      for (const p of pads) {
-        p.x *= sx; p.y *= sy;
-        p.ix = Math.round(p.x); p.iy = Math.round(p.y);
-      }
-      for (const p of food) { p.x *= sx; p.y *= sy; }
+      return;
     }
+    // Same cell size (the window only grew or shrank): keep the ripples and leave everything
+    // where it is on screen. Otherwise convert positions to the new cells.
+    const k = oldCss / cellCss;
+    if (k === 1) {
+      for (let y = 0, rows = Math.min(H, oldH); y < rows; y++) {
+        for (let x = 0, cols = Math.min(W, oldW); x < cols; x++) {
+          cur[y * W + x] = oldCur[y * oldW + x];
+          prev[y * W + x] = oldPrev[y * oldW + x];
+        }
+      }
+    }
+    // A small change (a phone's toolbar) keeps things where they are on screen. A big change in
+    // shape (turning the phone) spreads them out over the new shape instead.
+    let sx = k, sy = k;
+    if (Math.abs(W - oldW * k) > 2 || Math.abs(H - oldH * k) > H * 0.25) { sx = W / oldW; sy = H / oldH; }
+    for (const f of fish) {
+      for (const p of f.pts) { p.x *= sx; p.y *= sy; }
+      // Never leave a fish off screen: slide the whole body back in if needed.
+      const h = f.pts[0], m = Math.min(f.len * 0.5, SHORT * 0.25);
+      const dx = clamp(h.x, m, W - m) - h.x, dy = clamp(h.y, m, H - m) - h.y;
+      for (const p of f.pts) { p.x += dx; p.y += dy; }
+      f.goal = null;
+    }
+    for (const p of pads) {
+      p.x = clamp(p.x * sx, 0, W); p.y = clamp(p.y * sy, 0, H);
+      p.ix = Math.round(p.x); p.iy = Math.round(p.y);
+    }
+    for (const p of food) { p.x = clamp(p.x * sx, 0, W - 1); p.y = clamp(p.y * sy, 0, H - 1); }
   }
 
   // ---------- Pond floor ----------
 
+  // The floor is drawn from a fixed random seed, tied to positions on screen rather than to
+  // the window size, so resizing (or a phone's toolbar moving) never repaints a different floor.
+  const SEED = (Math.random() * 1e9) | 0;
+  function hash(x, y, salt) {
+    let h = Math.imul(x, 374761393) ^ Math.imul(y, 668265263) ^ Math.imul(SEED + salt, 2246822519);
+    h = Math.imul(h ^ (h >>> 13), 1274126177);
+    return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+  }
+  // A small random number generator that always gives the same sequence for the same seed.
+  function seeded(seed) {
+    let a = seed >>> 0;
+    return () => {
+      a = (a + 0x6d2b79f5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
   // Smooth random values on a grid.
-  function makeNoise(cellSize) {
-    const gw = Math.ceil(W / cellSize) + 2, gh = Math.ceil(H / cellSize) + 2;
-    const grid = Float32Array.from({ length: gw * gh }, Math.random);
-    const s = (t) => t * t * (3 - 2 * t);
+  function makeNoise(cellSize, salt) {
+    const sm = (t) => t * t * (3 - 2 * t);
     return (x, y) => {
       const gx = x / cellSize, gy = y / cellSize;
-      const ix = gx | 0, iy = gy | 0, tx = s(gx - ix), ty = s(gy - iy);
-      const a = grid[iy * gw + ix], b = grid[iy * gw + ix + 1];
-      const c = grid[(iy + 1) * gw + ix], d = grid[(iy + 1) * gw + ix + 1];
+      const ix = Math.floor(gx), iy = Math.floor(gy), tx = sm(gx - ix), ty = sm(gy - iy);
+      const a = hash(ix, iy, salt), b = hash(ix + 1, iy, salt), c = hash(ix, iy + 1, salt), d = hash(ix + 1, iy + 1, salt);
       return a + (b - a) * tx + (c - a) * ty + (a - b - c + d) * tx * ty;
     };
   }
@@ -121,40 +166,49 @@
 
   function paintFloor() {
     floorBuf = new Uint8ClampedArray(W * H * 4);
-    const big = makeNoise(Math.max(12, SHORT * 0.25)), small = makeNoise(16);
-    const cx = W / 2, cy = H / 2, maxR = Math.hypot(cx, cy);
+    const big = makeNoise(48, 1), small = makeNoise(16, 2);
+    const reach = SHORT * 0.55;
     for (let y = 0; y < H; y++) {
       for (let x = 0; x < W; x++) {
         const n = big(x, y) * 0.78 + small(x, y) * 0.22;
-        const depth = 1 - Math.hypot(x - cx, y - cy) / maxR; // deeper in the middle
+        // Deeper away from the edges. Measured from the nearest edge (not from the centre), so
+        // when a phone's toolbar changes the height, only the floor near that edge changes.
+        const edge = Math.min(x, W - x, y, H - y) / reach, depth = edge > 1 ? 1 : edge;
         const v = 0.12 + n * 0.85 - depth * 0.35;
         const i = clamp(Math.floor(v * FLOOR.length + bayer(x, y) - 0.5), 0, FLOOR.length - 1);
         put(floorBuf, x, y, FLOOR[i]);
       }
     }
-    // Pebbles: little ovals, lit from the top left.
-    const sparse = location.search.includes("cover") ? 3 : 1; // a quieter floor for the cover
-    for (let n = 0, count = (W * H) / 420 / sparse; n < count; n++) {
-      const px = rand(0, W), py = rand(0, H), rx = rand(1, 2.6), ry = rand(0.8, 1.8);
-      const [base, light, dark] = pick(STONES);
-      for (let y = Math.floor(py - ry); y <= Math.ceil(py + ry); y++) {
-        for (let x = Math.floor(px - rx); x <= Math.ceil(px + rx); x++) {
-          const dx = (x + 0.5 - px) / rx, dy = (y + 0.5 - py) / ry;
-          if (dx * dx + dy * dy > 1) continue;
-          put(floorBuf, x, y, dx + dy < -0.6 ? light : dx + dy > 0.5 ? dark : base);
+    // Pebbles and weeds are scattered tile by tile, each tile from its own seed.
+    const TILE = 24, sparse = location.search.includes("cover") ? 3 : 1; // a quieter floor for the cover
+    for (let ty = 0; ty * TILE < H; ty++) {
+      for (let tx = 0; tx * TILE < W; tx++) {
+        const r = seeded(hash(tx, ty, 3) * 4294967296);
+        const rr = (a, b) => a + r() * (b - a);
+        // Pebbles: little ovals, lit from the top left.
+        for (let n = 0, count = Math.floor((r() * 2.75) / sparse + r()); n < count; n++) {
+          const px = (tx + r()) * TILE, py = (ty + r()) * TILE, rx = rr(1, 2.6), ry = rr(0.8, 1.8);
+          const [base, light, dark] = STONES[Math.floor(r() * STONES.length)];
+          for (let y = Math.floor(py - ry); y <= Math.ceil(py + ry); y++) {
+            for (let x = Math.floor(px - rx); x <= Math.ceil(px + rx); x++) {
+              const dx = (x + 0.5 - px) / rx, dy = (y + 0.5 - py) / ry;
+              if (dx * dx + dy * dy > 1) continue;
+              put(floorBuf, x, y, dx + dy < -0.6 ? light : dx + dy > 0.5 ? dark : base);
+            }
+          }
         }
-      }
-    }
-    // Clumps of weed: a few wavy strands each.
-    for (let n = 0, count = ((W * H) / 6000 + 3) / sparse; n < count; n++) {
-      const bx = rand(0, W), by = rand(0, H);
-      for (let s = 0, strands = 4 + ((Math.random() * 5) | 0); s < strands; s++) {
-        let x = bx + rand(-2, 2), y = by + rand(-2, 2), a = rand(0, TAU);
-        const len = rand(5, 14), color = pick(WEEDS);
-        for (let k = 0; k < len; k++) {
-          put(floorBuf, Math.round(x), Math.round(y), k > len - 2 ? WEED_TIP : color);
-          a += rand(-0.5, 0.5);
-          x += Math.cos(a); y += Math.sin(a);
+        // Now and then a clump of weed: a few wavy strands.
+        if (r() < 0.14 / sparse) {
+          const bx = (tx + r()) * TILE, by = (ty + r()) * TILE;
+          for (let n = 0, strands = 4 + Math.floor(r() * 5); n < strands; n++) {
+            let x = bx + rr(-2, 2), y = by + rr(-2, 2), a = rr(0, TAU);
+            const len = rr(5, 14), color = WEEDS[Math.floor(r() * WEEDS.length)];
+            for (let k = 0; k < len; k++) {
+              put(floorBuf, Math.round(x), Math.round(y), k > len - 2 ? WEED_TIP : color);
+              a += rr(-0.5, 0.5);
+              x += Math.cos(a); y += Math.sin(a);
+            }
+          }
         }
       }
     }
@@ -447,18 +501,22 @@
       const kind = this.kind, col = this.col;
       kind.fill(0, 0, w * h);
 
+      // Only the pixels inside a rectangle around [xs, ys] (clipped to the fish's box).
+      const around = (xs, ys, m, each) => {
+        const i0 = Math.max(0, Math.floor(Math.min(...xs) - m) - x0), i1 = Math.min(w - 1, Math.ceil(Math.max(...xs) + m) - x0);
+        const j0 = Math.max(0, Math.floor(Math.min(...ys) - m) - y0), j1 = Math.min(h - 1, Math.ceil(Math.max(...ys) + m) - y0);
+        for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) each(i, j, x0 + i + 0.5, y0 + j + 0.5);
+      };
+
       // Fins first; the body is drawn over them.
-      for (let j = 0; j < h; j++) {
-        for (let i = 0; i < w; i++) {
-          const px = x0 + i + 0.5, py = y0 + j + 0.5;
-          let hit = insidePolygon(px, py, tail);
-          for (const f of pect) {
-            if (hit) break;
-            const lx = (px - f.x) * f.ca + (py - f.y) * f.sa, ly = -(px - f.x) * f.sa + (py - f.y) * f.ca;
-            if ((lx / f.rx) ** 2 + (ly / f.ry) ** 2 <= 1) hit = true;
-          }
-          if (hit) kind[j * w + i] = 1;
-        }
+      around(tail.map((q) => q[0]), tail.map((q) => q[1]), 0, (i, j, px, py) => {
+        if (insidePolygon(px, py, tail)) kind[j * w + i] = 1;
+      });
+      for (const f of pect) {
+        around([f.x], [f.y], f.rx + 1, (i, j, px, py) => {
+          const lx = (px - f.x) * f.ca + (py - f.y) * f.sa, ly = -(px - f.x) * f.sa + (py - f.y) * f.ca;
+          if ((lx / f.rx) ** 2 + (ly / f.ry) ** 2 <= 1) kind[j * w + i] = 1;
+        });
       }
       // Fin edges: fin pixels next to an empty one.
       for (let j = 0; j < h; j++) {
@@ -473,17 +531,44 @@
       // is and on which side, which gives the outline, the patches and the shading.
       const v = this.v;
       const eyeA = nose + len * 0.05;
+      // Patches for this frame: where each one sits along and across the body, and its
+      // wavy outline as plain numbers (no trigonometry per pixel).
+      const patches = this.patches.map((q) => {
+        const a = nose + q.u * len;
+        return { color: q.color, a, s: q.s * widthAt(a), r: q.r, max2: (q.r * 1.23) ** 2,
+          cph: 0.22 * Math.cos(q.ph), sph: 0.22 * Math.sin(q.ph) };
+      });
+      // The spine's segments, worked out once for this frame.
+      const n = P.length - 1;
+      const sax = new Float64Array(n), say = new Float64Array(n), sbx = new Float64Array(n), sby = new Float64Array(n);
+      const sinv = new Float64Array(n), slen = new Float64Array(n);
+      for (let q = 0; q < n; q++) {
+        sax[q] = P[q][0]; say[q] = P[q][1];
+        sbx[q] = P[q + 1][0] - P[q][0]; sby[q] = P[q + 1][1] - P[q][1];
+        const l2 = sbx[q] * sbx[q] + sby[q] * sby[q] || 1;
+        sinv[q] = 1 / l2; slen[q] = Math.sqrt(l2);
+      }
+      // Only pixels close to some segment can be on the body: mark those first.
+      if (!this.near || this.near.length < w * h) this.near = new Uint8Array(this.kind.length);
+      const near = this.near, m = wd + 1.5;
+      near.fill(0, 0, w * h);
+      for (let q = 0; q < n; q++) {
+        const i0 = Math.max(0, Math.floor(Math.min(sax[q], sax[q] + sbx[q]) - m) - x0), i1 = Math.min(w - 1, Math.ceil(Math.max(sax[q], sax[q] + sbx[q]) + m) - x0);
+        const j0 = Math.max(0, Math.floor(Math.min(say[q], say[q] + sby[q]) - m) - y0), j1 = Math.min(h - 1, Math.ceil(Math.max(say[q], say[q] + sby[q]) + m) - y0);
+        for (let j = j0; j <= j1; j++) near.fill(1, j * w + i0, j * w + i1 + 1);
+      }
       for (let j = 0; j < h; j++) {
+        const py = y0 + j + 0.5;
         for (let i = 0; i < w; i++) {
-          const px = x0 + i + 0.5, py = y0 + j + 0.5;
+          if (!near[j * w + i]) continue;
+          const px = x0 + i + 0.5;
           let best = Infinity, along = 0, side = 1;
-          for (let s = 0; s < P.length - 1; s++) {
-            const ax = P[s][0], ay = P[s][1], bx = P[s + 1][0] - ax, by = P[s + 1][1] - ay;
-            const l2 = bx * bx + by * by || 1;
-            const tt = clamp(((px - ax) * bx + (py - ay) * by) / l2, 0, 1);
-            const qx = px - (ax + bx * tt), qy = py - (ay + by * tt);
-            const dd = qx * qx + qy * qy;
-            if (dd < best) { best = dd; along = A[s] + tt * Math.sqrt(l2); side = bx * qy - by * qx > 0 ? 1 : -1; }
+          for (let q = 0; q < n; q++) {
+            const rx = px - sax[q], ry = py - say[q], bx = sbx[q], by = sby[q];
+            let tt = (rx * bx + ry * by) * sinv[q];
+            tt = tt < 0 ? 0 : tt > 1 ? 1 : tt;
+            const qx = rx - bx * tt, qy = ry - by * tt, dd = qx * qx + qy * qy;
+            if (dd < best) { best = dd; along = A[q] + tt * slen[q]; side = bx * qy - by * qx > 0 ? 1 : -1; }
           }
           const dist = Math.sqrt(best), wa = widthAt(along);
           if (dist > wa + 0.9 || wa <= 0) continue;
@@ -495,16 +580,19 @@
           } else {
             const u = (along - nose) / len, sn = (side * dist) / wa, across = side * dist;
             let t0 = v.base;
-            for (const p of this.patches) {
-              const du = along - (nose + p.u * len), ds = across - p.s * widthAt(nose + p.u * len);
-              const r = p.r * (1 + 0.22 * Math.sin(3 * Math.atan2(ds, du) + p.ph));
-              if (du * du + ds * ds < r * r) t0 = p.color;
+            for (const q of patches) {
+              const du = along - q.a, ds = across - q.s, d2 = du * du + ds * ds;
+              if (d2 >= q.max2) continue;
+              // sin(3θ + phase), with θ the direction from the patch centre.
+              const dd = Math.sqrt(d2) || 1e-6, co = du / dd, si = ds / dd;
+              const r = q.r * (1 + (3 * si - 4 * si * si * si) * q.cph + (4 * co * co * co - 3 * co) * q.sph);
+              if (d2 < r * r) t0 = q.color;
             }
             if (v.crown) {
               const du = along - (nose + 0.1 * len);
               if (du * du + across * across < (wd * 0.6) ** 2) t0 = v.crown;
             }
-            const edge = Math.abs(sn) + (bayer(x0 + i, y0 + j) - 0.5) * 0.18;
+            const edge = Math.abs(sn) + (BAYER[((y0 + j) & 3) * 4 + ((x0 + i) & 3)] - 0.5) * 0.18;
             if (edge > 0.66) c = t0.shade;
             else if (Math.abs(sn) < (v.shine ? 0.32 : 0.2) && u > 0.1 && u < 0.72) c = t0.light;
             else c = t0.c;
@@ -599,20 +687,15 @@
     return 3;
   }
 
-  function padShadow(p) {
-    const cx = p.ix, cy = p.iy, r = Math.ceil(p.r) + 1;
-    for (let y = cy - r; y <= cy + r; y++) {
-      for (let x = cx - r; x <= cx + r; x++) {
-        if (padPart(p, x + 0.5 - cx, y + 0.5 - cy)) darken(scene, x + 2, y + 3, 0.65);
-      }
-    }
-  }
-
-  function drawPad(p) {
-    const cx = p.ix, cy = p.iy, r = Math.ceil(p.r) + 1, t = p.tone;
-    for (let y = cy - r; y <= cy + r; y++) {
-      for (let x = cx - r; x <= cx + r; x++) {
-        const lx = x + 0.5 - cx, ly = y + 0.5 - cy;
+  // A pad's pixels (and its flower's) only change when it turns, so they are worked out
+  // once and reused: each frame just copies them to where the pad is.
+  function padPixels(p) {
+    if (p.cache && p.cacheRot === p.irot) return p.cache;
+    const r = Math.ceil(p.r) + 1, t = p.tone;
+    const leaf = { x: [], y: [], c: [] };
+    for (let dy = -r; dy <= r; dy++) {
+      for (let dx = -r; dx <= r; dx++) {
+        const lx = dx + 0.5, ly = dy + 0.5;
         const part = padPart(p, lx, ly);
         if (!part) continue;
         let c;
@@ -620,23 +703,45 @@
         else if (part === 2) c = t.vein;
         else {
           // Lit from the top left, with a dithered edge between the tones.
-          const l = (lx + ly) / p.r + (bayer(x, y) - 0.5) * 0.35;
+          const l = (lx + ly) / p.r + (bayer(dx + 64, dy + 64) - 0.5) * 0.35;
           c = l < -0.6 ? t.light : l > 0.55 ? t.dark : t.fill;
         }
-        put(out, x, y, c);
+        leaf.x.push(dx); leaf.y.push(dy); leaf.c.push(c);
       }
     }
+    let flower = null;
     if (p.flower) {
       // The flower turns with its leaf.
       const ca = Math.cos(p.irot), sa = Math.sin(p.irot);
-      drawFlower(cx + 0.5 + p.fx * ca - p.fy * sa, cy + 0.5 + p.fx * sa + p.fy * ca, p.flower, true, p.irot);
+      flower = flowerPixels(p.flower, p.irot);
+      flower.ox = Math.round(0.5 + p.fx * ca - p.fy * sa);
+      flower.oy = Math.round(0.5 + p.fx * sa + p.fy * ca);
+    }
+    p.cache = { leaf, flower };
+    p.cacheRot = p.irot;
+    return p.cache;
+  }
+
+  function padShadow(p) {
+    const { leaf } = padPixels(p);
+    for (let k = 0; k < leaf.x.length; k++) darken(scene, p.ix + leaf.x[k] + 2, p.iy + leaf.y[k] + 3, 0.65);
+  }
+
+  function drawPad(p) {
+    const { leaf, flower } = padPixels(p);
+    for (let k = 0; k < leaf.x.length; k++) put(out, p.ix + leaf.x[k], p.iy + leaf.y[k], leaf.c[k]);
+    if (flower) {
+      const fx = p.ix + flower.ox, fy = p.iy + flower.oy;
+      // A soft shadow under the flower, on the leaf.
+      for (let k = 0; k < flower.x.length; k++) darken(out, fx + flower.x[k] + 1, fy + flower.y[k] + 1, 0.72);
+      for (let k = 0; k < flower.x.length; k++) put(out, fx + flower.x[k], fy + flower.y[k], flower.c[k]);
     }
   }
 
   // A water lily drawn in polar coordinates: two rings of pointed petals and a yellow heart.
-  function drawFlower(fx, fy, f, onLeaf, spin = 0) {
-    const cx = Math.round(fx), cy = Math.round(fy), s = f.size, R = Math.ceil(s) + 2, t = f.tone;
-    const turn = f.turn + spin;
+  // Returns its pixels around its centre.
+  function flowerPixels(f, spin) {
+    const s = f.size, R = Math.ceil(s) + 2, t = f.tone, turn = f.turn + spin;
     const shape = (lx, ly) => {
       const d = Math.hypot(lx, ly), th = Math.atan2(ly, lx) - turn;
       if (f.bud) {
@@ -654,16 +759,14 @@
       if (d <= e1 + 0.9) return t.line;
       return null;
     };
-    // A soft shadow under the flower, on the leaf or the water.
-    for (let y = cy - R; y <= cy + R; y++) {
-      for (let x = cx - R; x <= cx + R; x++) if (shape(x + 0.5 - cx, y + 0.5 - cy)) darken(out, x + 1, y + 1, onLeaf ? 0.72 : 0.6);
-    }
-    for (let y = cy - R; y <= cy + R; y++) {
-      for (let x = cx - R; x <= cx + R; x++) {
-        const c = shape(x + 0.5 - cx, y + 0.5 - cy);
-        if (c) put(out, x, y, c);
+    const px = { x: [], y: [], c: [] };
+    for (let dy = -R; dy <= R; dy++) {
+      for (let dx = -R; dx <= R; dx++) {
+        const c = shape(dx + 0.5, dy + 0.5);
+        if (c) { px.x.push(dx); px.y.push(dy); px.c.push(c); }
       }
     }
+    return px;
   }
 
   function slope(x, y) {
@@ -895,6 +998,7 @@
   const BAND = 11, GLINT = hex("#cfeee2");
   function renderWater() {
     for (let y = 0; y < H; y++) {
+      const brow = (y & 3) * 4;
       for (let x = 0; x < W; x++) {
         const i = y * W + x, k = i * 4;
         let dx = 0, dy = 0;
@@ -902,10 +1006,17 @@
           dx = cur[i - 1] - cur[i + 1];
           dy = cur[i - W] - cur[i + W];
         }
-        const sx = clamp(Math.round(x + dx * REFRACTION), 0, W - 1);
-        const sy = clamp(Math.round(y + dy * REFRACTION), 0, H - 1);
+        // Still water (most of the pond, most of the time): the picture shows through as is.
+        if (dx < 0.01 && dx > -0.01 && dy < 0.01 && dy > -0.01) {
+          out[k] = scene[k]; out[k + 1] = scene[k + 1]; out[k + 2] = scene[k + 2];
+          continue;
+        }
+        let sx = (x + dx * REFRACTION + 0.5) | 0, sy = (y + dy * REFRACTION + 0.5) | 0;
+        sx = sx < 0 ? 0 : sx >= W ? W - 1 : sx;
+        sy = sy < 0 ? 0 : sy >= H ? H - 1 : sy;
         const j = (sy * W + sx) * 4;
-        const level = clamp(Math.round((dx + dy) * 6 + (bayer(x, y) - 0.5) * 0.9), -3, 4);
+        let level = Math.round((dx + dy) * 6 + (BAYER[brow + (x & 3)] - 0.5) * 0.9);
+        level = level < -3 ? -3 : level > 4 ? 4 : level;
         let r = scene[j] + level * BAND, g = scene[j + 1] + level * BAND, b = scene[j + 2] + level * BAND * 0.9;
         if (level >= 3) { r = (r + GLINT[0] * 2) / 3; g = (g + GLINT[1] * 2) / 3; b = (b + GLINT[2] * 2) / 3; }
         out[k] = r; out[k + 1] = g; out[k + 2] = b;
@@ -950,6 +1061,17 @@
       put(out, x, y, PELLET[p.tone]);
       if (p.tone) put(out, x, y, PELLET_LIGHT);
     }
+  }
+
+  // ---------- Opening ----------
+
+  // The page opens white, like the rest of the portfolio, and the pond fades in once its first
+  // frame is drawn (the fade itself is in style.css).
+  let opened = false;
+  function applyOpening() {
+    if (opened) return;
+    opened = true;
+    requestAnimationFrame(() => document.documentElement.classList.remove("opening"));
   }
 
   // ---------- Pointer ----------
@@ -1056,7 +1178,19 @@
   }
 
   // Moves everything on by dt seconds and draws the result.
+  // With ?debug, how long each part of the frame takes (ms, added up), for pond.profile.
+  const profile = {};
+  const DEBUG = location.search.includes("debug");
+  let lap = 0;
+  const mark = (name) => {
+    if (!DEBUG) return;
+    const now = performance.now();
+    if (name) profile[name] = (profile[name] || 0) + now - lap;
+    lap = now;
+  };
+
   function tick(dt) {
+    mark();
     // Now and then something touches the surface: an insect, a drop.
     if ((nextDrop -= dt) <= 0) {
       nextDrop = rand(3, 7);
@@ -1067,23 +1201,31 @@
     let steps = 0;
     while (acc >= STEP && steps < 3) { stepWater(); acc -= STEP; steps++; }
     if (steps === 3) acc = 0;
+    mark("waves");
 
     for (const f of fish) f.update(dt);
     updatePads(dt);
     updateFood(dt);
+    mark("movement");
 
     // Under the surface: floor, shadows from above, fish (deepest first).
     scene.set(floorBuf);
     for (const p of pads) padShadow(p);
+    mark("floor");
     for (const f of fish) f.raster();
     for (const f of fish) f.drawShadow();
     for (const f of [...fish].sort((a, b) => b.z - a.z)) f.draw();
+    mark("fish");
 
     // The surface, then what floats on it.
     renderWater();
+    mark("surface");
     drawFood();
     for (const p of pads) drawPad(p);
+    mark("pads");
+    applyOpening();
     ctx.putImageData(image, 0, 0);
+    mark("display");
   }
 
   let resizeTimer = 0;
@@ -1095,5 +1237,5 @@
   requestAnimationFrame((t) => { last = t; frame(t); });
 
   // With ?debug in the address, the fish can be inspected from the browser console.
-  if (location.search.includes("debug")) window.pond = { get fish() { return fish; }, get pads() { return pads; }, tick };
+  if (location.search.includes("debug")) window.pond = { get fish() { return fish; }, get pads() { return pads; }, get floor() { return { buf: floorBuf, W, H }; }, tick, profile };
 })();
