@@ -761,9 +761,9 @@ main { margin-top: calc(-1 * var(--header-h)); }
 .related-arrow { display: inline-block; width: 0; overflow: hidden; opacity: 0; transition: width 0.15s ease, opacity 0.15s ease; }
 .related-row:hover, .related-row:focus-visible { background: #e8e8e8; }
 .related-row:hover .related-arrow, .related-row:focus-visible .related-arrow { width: 1.1em; opacity: 1; }
-/* Previous / next replaces it on phones only. */
+/* Previous / next replaces it on phones and tablets (iPad included, also in landscape). */
 .project-nav { display: none !important; }
-@media (max-width: 599px) {
+@media (max-width: 1024px), (hover: none) and (pointer: coarse) {
   .related { display: none; }
   .project-nav { display: flex !important; }
 }
@@ -778,7 +778,7 @@ main { margin-top: calc(-1 * var(--header-h)); }
 .pn-arrow { display: inline-block; transition: transform 0.2s ease; }
 .pn-prev:hover .pn-arrow, .pn-prev:focus-visible .pn-arrow { transform: translateX(-0.25em); }
 .pn-next:hover .pn-arrow, .pn-next:focus-visible .pn-arrow { transform: translateX(0.25em); }
-@media (max-width: 599px) {
+@media (max-width: 1024px), (hover: none) and (pointer: coarse) {
   /* Previous / next as on alessiagarofalo.com: small grey label above, project name below. */
   .project-nav { border-top-color: rgba(0, 0, 0, 0.12); padding-top: 20px; }
   .pn-link { flex-direction: column; align-items: flex-start; gap: 4px; font-size: 16px; font-weight: 400; }
