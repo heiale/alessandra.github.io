@@ -839,7 +839,8 @@ def build_about():
 
 
 # Laboratory: small interactive experiments. Each one is a separate web app published in
-# laboratory/<slug>/ (Glitch Cam is built from lab/glitch-cam with `npm run build`).
+# laboratory/<slug>/ (Glitch Cam is built from lab/glitch-cam with `npm run build`; Koi Pond has no
+# build step and is edited directly in laboratory/koi-pond/).
 # An experiment with "url" runs on its own server: laboratory/<slug>/ is then a small waiting page
 # that wakes the server and opens the game (see build_lab_wake). "hidden" keeps the card off the
 # Laboratory page and skips the waiting page, e.g. until the server is online.
@@ -851,6 +852,14 @@ EXPERIMENTS = [
         "desc": "A real-time webcam glitch: as you move, your image breaks into pieces from different moments, "
                 "and your open hand pushes the distortion to the max.",
         "tags": ["WebGL", "Computer vision", "Interaction"],
+    },
+    {
+        "slug": "koi-pond",
+        "name": "Koi Pond",
+        "image": "lab-koi-pond.png",
+        "desc": "A pixel pond seen from above: koi drift among the water lilies. Tap to feed them, "
+                "drag to stir the water and push the pads around.",
+        "tags": ["Pixel art", "Simulation", "Interaction"],
     },
     {
         "slug": "pictionary-ai",

@@ -1,0 +1,66 @@
+/* Koi Pond: full-screen canvas, with an exit button and a hint on top. */
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #123c39;
+  color: #eef3ee;
+  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#pond {
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: block;
+  image-rendering: pixelated;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.back-link,
+.hint {
+  position: fixed;
+  z-index: 2;
+  margin: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(6, 26, 24, 0.55);
+  font-size: 13px;
+  line-height: 1.4;
+  color: #dfe9e4;
+}
+
+/* Round button with just the ✕. */
+.back-link {
+  top: 16px;
+  right: 16px;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  font-size: 16px;
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.back-link:hover { background: rgba(6, 26, 24, 0.85); color: #fff; }
+.back-link:focus-visible { outline: 2px solid #ff5e00; outline-offset: 3px; }
+
+.hint {
+  left: 50%;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  text-align: center;
+  pointer-events: none;
+  transition: opacity 0.8s ease;
+}
+
+.hint.is-faded { opacity: 0; }
