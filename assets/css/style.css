@@ -688,6 +688,7 @@ main { margin-top: calc(-1 * var(--header-h)); }
   .grid:not(.site-header):not(.pair) > * { grid-column: 1 / -1; }
   /* Project facts: three per row on tablets, two on phones. */
   .grid.case-facts > .fact { grid-column: span 4; }
+  .related-text { grid-column: 1 / -1; }
   /* Images stop at the page margin on both sides (on desktop they run to the right edge). */
   .bleed { margin-right: 0; }
   .media.narrow { margin-left: auto; margin-right: auto; }
@@ -746,6 +747,27 @@ main { margin-top: calc(-1 * var(--header-h)); }
   .rv { opacity: 1; transform: none; transition: none; }
 }
 
+/* Related projects at the end of a project page (computer and tablet, as in Figma) */
+.related-h, .related-text { font-family: var(--f-intl); }
+.related { padding-top: var(--gap-m); }
+.related::before { content: ""; display: block; margin: 0 var(--margin); border-top: 1px solid var(--ink); }
+.related-h { margin-top: 2.42vw; font-size: clamp(18px, 1.875vw, 40px); font-weight: 500; color: var(--grey); }
+.related-list { list-style: none; margin: 4.45vw var(--margin) 0; padding: 0; display: flex; flex-direction: column; gap: 1.33vw; }
+.related-row.grid { padding: 0.15em 0; transition: background-color 0.15s ease; }
+.related-text { grid-column: 5 / -1; display: flex; align-items: baseline; flex-wrap: wrap; column-gap: 0.35em; font-size: clamp(18px, 1.875vw, 40px); font-weight: 500; line-height: 1.2; }
+.related-row .related-name { color: var(--ink); }
+.related-row .related-short { color: var(--grey); }
+.related-row .related-arrow { color: var(--ink); }
+.related-arrow { display: inline-block; width: 0; overflow: hidden; opacity: 0; transition: width 0.15s ease, opacity 0.15s ease; }
+.related-row:hover, .related-row:focus-visible { background: #e8e8e8; }
+.related-row:hover .related-arrow, .related-row:focus-visible .related-arrow { width: 1.1em; opacity: 1; }
+/* Previous / next replaces it on phones only. */
+.project-nav { display: none !important; }
+@media (max-width: 599px) {
+  .related { display: none; }
+  .project-nav { display: flex !important; }
+}
+
 /* Previous / next project at the end of a project page */
 .project-nav { display: flex; justify-content: space-between; align-items: baseline; gap: var(--gutter); margin: var(--gap-m) var(--margin) 0; padding-top: var(--gap-s); border-top: 1px solid var(--ink); }
 .pn-link { display: inline-flex; align-items: baseline; gap: 0.4em; font-size: clamp(18px, 1.875vw, 40px); font-weight: 500; line-height: 1.2; }
@@ -786,6 +808,7 @@ main { margin-top: calc(-1 * var(--header-h)); }
   .stats-r .stat-n { font-size: clamp(28px, 2.6vw, 46px); }
   .proj-card .proj-name { font-size: clamp(16px, 1.2vw, 21px); }
   .pn-link { font-size: clamp(18px, 1.5vw, 27px); }
+  .related-h, .related-text { font-size: clamp(18px, 1.5vw, 27px); }
   .proj-card .proj-desc { font-size: clamp(14px, 0.92vw, 16px); }
   .cv-activity, .site-footer .f-contact { font-size: clamp(14px, 1.05vw, 18px); }
   .site-footer .f-bottom { font-size: clamp(11px, 0.8vw, 14px); }
