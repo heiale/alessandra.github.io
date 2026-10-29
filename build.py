@@ -769,7 +769,7 @@ CV_SKILLS = [
                                 "Information Architecture", "High-Fidelity Prototyping"]),
     ("Tools", ["Figma, ProtoPie", "Adobe Creative Suite", "Unity UI Toolkit, Blender", "Claude, Replit, Magnific",
                "HTML, CSS, JavaScript"]),
-    ("Languages", ["Italian — Native", "English — Fluent", "Spanish — Intermediate", "German — Beginner"]),
+    ("Languages", ["Italian — Native", "English — Fluent", "Spanish — Intermediate", "German — Beginner", "French — Beginner"]),
 ]
 CV_EDUCATION = [
     ("MSc Digital and Interaction Design", ["Politecnico di Milano", "Grade: 110/110 cum laude"], "2023 – 2025"),
