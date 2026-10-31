@@ -875,7 +875,6 @@ EXPERIMENTS = [
         # domain (see build_lab_embed). It is a 1024×768 game played with the keyboard.
         "embed": "https://chiaramazzeo.github.io/Pinocchio/",
         "embed_size": (1024, 768),
-        "hint": "Play with the keyboard · Best on a computer",
     },
     {
         "slug": "pictionary-ai",
@@ -927,7 +926,7 @@ def build_lab_embed(e):
   html, body {{ margin: 0; height: 100%; background: #000; overflow: hidden; }}
   .stage {{ position: fixed; left: 50%; top: 50%; width: {w}px; height: {h}px; transform-origin: 0 0; }}
   .stage iframe {{ display: block; width: 100%; height: 100%; border: 0; }}
-  .back-link, .hint {{
+  .back-link {{
     position: fixed; z-index: 2; margin: 0; padding: 8px 14px; border-radius: 999px;
     background: rgba(0, 0, 0, 0.55); color: #e9e2dc;
     font: 13px/1.4 "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -939,17 +938,11 @@ def build_lab_embed(e):
   }}
   .back-link:hover {{ background: rgba(0, 0, 0, 0.85); color: #fff; }}
   .back-link:focus-visible {{ outline: 2px solid #ff5e00; outline-offset: 3px; }}
-  .hint {{
-    left: 50%; bottom: max(16px, env(safe-area-inset-bottom)); transform: translateX(-50%);
-    white-space: nowrap; transition: opacity 0.6s ease;
-  }}
-  .hint.is-gone {{ opacity: 0; pointer-events: none; }}
 </style>
 </head>
 <body>
 <div class="stage"><iframe src="{e["embed"]}" title="{escape(e["name"])}" allow="autoplay; fullscreen"></iframe></div>
 <a class="back-link" href="../../laboratory.html" aria-label="Exit to Laboratory"><span aria-hidden="true">✕</span></a>
-<p class="hint" id="hint">{escape(e.get("hint", ""))}</p>
 <script>
   // Scale the {w}×{h} game to the largest size that fits the window, keeping its proportions.
   var stage = document.querySelector('.stage');
@@ -962,7 +955,6 @@ def build_lab_embed(e):
   window.addEventListener('resize', fit);
   // Keyboard games need focus: give it to the game once it has loaded.
   frame.addEventListener('load', function () {{ frame.focus(); }});
-  setTimeout(function () {{ document.getElementById('hint').classList.add('is-gone'); }}, 5000);
 </script>
 </body>
 </html>
