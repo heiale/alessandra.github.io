@@ -843,7 +843,8 @@ def build_about():
 # build step and is edited directly in laboratory/koi-pond/).
 # An experiment with "url" runs on its own server: laboratory/<slug>/ is then a small waiting page
 # that wakes the server and opens the game (see build_lab_wake). "hidden" keeps the card off the
-# Laboratory page and skips the waiting page, e.g. until the server is online.
+# Laboratory page and skips the waiting page, e.g. until the server is online. An experiment with
+# "href" is published elsewhere: its card opens that address in a new tab.
 EXPERIMENTS = [
     {
         "slug": "glitch-cam",
@@ -860,6 +861,17 @@ EXPERIMENTS = [
         "desc": "A pixel pond seen from above: koi drift among the water lilies. Tap to feed them, "
                 "drag to stir the water and push the pads around.",
         "tags": ["Pixel art", "Simulation", "Interaction"],
+    },
+    {
+        "slug": "pinocchio",
+        "name": "Pinocchio",
+        "image": "lab-pinocchio.jpg",
+        "desc": "A platform game inspired by Pinocchio, made with a team of twelve at Politecnico di Milano "
+                "(Computer Graphics Lab, 2021–22): a game concept, the basics of building a videogame and "
+                "3D-rendered scenes.",
+        "tags": ["Game design", "3D scenes", "Phaser"],
+        # Published elsewhere (a teammate's GitHub Pages): the card opens it in a new tab.
+        "href": "https://chiaramazzeo.github.io/Pinocchio/",
     },
     {
         "slug": "pictionary-ai",
@@ -879,7 +891,9 @@ EXPERIMENTS = [
 
 def build_laboratory():
     cards = "".join(
-        f'<a class="proj-card" href="laboratory/{e["slug"]}/" data-pixel-hover>{media(e["image"], "", "16 / 10")}'
+        (f'<a class="proj-card" href="{e["href"]}" target="_blank" rel="noopener" data-pixel-hover>'
+         if e.get("href") else f'<a class="proj-card" href="laboratory/{e["slug"]}/" data-pixel-hover>')
+        + f'{media(e["image"], "", "16 / 10")}'
         f'<span class="proj-text"><span class="proj-name">{escape(e["name"])}</span>'
         f'<span class="proj-desc">{escape(e["desc"])}</span>'
         f'<span class="proj-tags">{"".join(f"<span>{escape(t)}</span>" for t in e["tags"])}</span></span></a>'
