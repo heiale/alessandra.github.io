@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Pinocchio · Alessandra Annoni</title>
+<meta name="description" content="A platform game inspired by Pinocchio, made with a team of twelve at Politecnico di Milano (Computer Graphics Lab, 2021–22): a game concept, the basics of building a videogame and 3D-rendered scenes.">
+<link rel="icon" href="../../assets/icons/favicon.svg" type="image/svg+xml">
+<style>
+  html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+  .stage { position: fixed; left: 50%; top: 50%; width: 1024px; height: 768px; transform-origin: 0 0; }
+  .stage iframe { display: block; width: 100%; height: 100%; border: 0; }
+  .back-link, .hint {
+    position: fixed; z-index: 2; margin: 0; padding: 8px 14px; border-radius: 999px;
+    background: rgba(0, 0, 0, 0.55); color: #e9e2dc;
+    font: 13px/1.4 "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }
+  .back-link {
+    top: max(16px, env(safe-area-inset-top)); right: max(16px, env(safe-area-inset-right));
+    display: grid; place-items: center; width: 40px; height: 40px; padding: 0;
+    font-size: 16px; text-decoration: none; transition: background 0.15s ease, color 0.15s ease;
+  }
+  .back-link:hover { background: rgba(0, 0, 0, 0.85); color: #fff; }
+  .back-link:focus-visible { outline: 2px solid #ff5e00; outline-offset: 3px; }
+  .hint {
+    left: 50%; bottom: max(16px, env(safe-area-inset-bottom)); transform: translateX(-50%);
+    white-space: nowrap; transition: opacity 0.6s ease;
+  }
+  .hint.is-gone { opacity: 0; pointer-events: none; }
+</style>
+</head>
+<body>
+<div class="stage"><iframe src="https://chiaramazzeo.github.io/Pinocchio/" title="Pinocchio" allow="autoplay; fullscreen"></iframe></div>
+<a class="back-link" href="../../laboratory.html" aria-label="Exit to Laboratory"><span aria-hidden="true">✕</span></a>
+<p class="hint" id="hint">Play with the keyboard · Best on a computer</p>
+<script>
+  // Scale the 1024×768 game to the largest size that fits the window, keeping its proportions.
+  var stage = document.querySelector('.stage');
+  var frame = stage.querySelector('iframe');
+  function fit() {
+    var k = Math.min(window.innerWidth / 1024, window.innerHeight / 768);
+    stage.style.transform = 'scale(' + k + ') translate(-50%, -50%)';
+  }
+  fit();
+  window.addEventListener('resize', fit);
+  // Keyboard games need focus: give it to the game once it has loaded.
+  frame.addEventListener('load', function () { frame.focus(); });
+  setTimeout(function () { document.getElementById('hint').classList.add('is-gone'); }, 5000);
+</script>
+</body>
+</html>

@@ -844,7 +844,8 @@ def build_about():
 # An experiment with "url" runs on its own server: laboratory/<slug>/ is then a small waiting page
 # that wakes the server and opens the game (see build_lab_wake). "hidden" keeps the card off the
 # Laboratory page and skips the waiting page, e.g. until the server is online. An experiment with
-# "href" is published elsewhere: its card opens that address in a new tab.
+# "embed" is published elsewhere: laboratory/<slug>/ shows it full screen, so the address stays on
+# this domain.
 EXPERIMENTS = [
     {
         "slug": "glitch-cam",
@@ -870,8 +871,11 @@ EXPERIMENTS = [
                 "(Computer Graphics Lab, 2021–22): a game concept, the basics of building a videogame and "
                 "3D-rendered scenes.",
         "tags": ["Game design", "3D scenes", "Phaser"],
-        # Published elsewhere (a teammate's GitHub Pages): the card opens it in a new tab.
-        "href": "https://chiaramazzeo.github.io/Pinocchio/",
+        # Published on a teammate's GitHub Pages; laboratory/pinocchio/ shows it full screen on this
+        # domain (see build_lab_embed). It is a 1024×768 game played with the keyboard.
+        "embed": "https://chiaramazzeo.github.io/Pinocchio/",
+        "embed_size": (1024, 768),
+        "hint": "Play with the keyboard · Best on a computer",
     },
     {
         "slug": "pictionary-ai",
@@ -891,9 +895,7 @@ EXPERIMENTS = [
 
 def build_laboratory():
     cards = "".join(
-        (f'<a class="proj-card" href="{e["href"]}" target="_blank" rel="noopener" data-pixel-hover>'
-         if e.get("href") else f'<a class="proj-card" href="laboratory/{e["slug"]}/" data-pixel-hover>')
-        + f'{media(e["image"], "", "16 / 10")}'
+        f'<a class="proj-card" href="laboratory/{e["slug"]}/" data-pixel-hover>{media(e["image"], "", "16 / 10")}'
         f'<span class="proj-text"><span class="proj-name">{escape(e["name"])}</span>'
         f'<span class="proj-desc">{escape(e["desc"])}</span>'
         f'<span class="proj-tags">{"".join(f"<span>{escape(t)}</span>" for t in e["tags"])}</span></span></a>'
@@ -907,6 +909,67 @@ def build_laboratory():
 <section class="proj-grid page-end">{cards}</section>"""
     page("laboratory.html", f"Laboratory · {NAME}", body,
          "Small interactive experiments exploring how people and technology can play together.")
+
+
+def build_lab_embed(e):
+    """Full-screen page that shows an experiment published elsewhere, scaled to fit the window
+    without stretching, with the same exit button as the other experiments."""
+    w, h = e["embed_size"]
+    html = f"""<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{escape(e["name"])} · {NAME}</title>
+<meta name="description" content="{escape(e["desc"])}">
+<link rel="icon" href="../../assets/icons/favicon.svg" type="image/svg+xml">
+<style>
+  html, body {{ margin: 0; height: 100%; background: #000; overflow: hidden; }}
+  .stage {{ position: fixed; left: 50%; top: 50%; width: {w}px; height: {h}px; transform-origin: 0 0; }}
+  .stage iframe {{ display: block; width: 100%; height: 100%; border: 0; }}
+  .back-link, .hint {{
+    position: fixed; z-index: 2; margin: 0; padding: 8px 14px; border-radius: 999px;
+    background: rgba(0, 0, 0, 0.55); color: #e9e2dc;
+    font: 13px/1.4 "Helvetica Neue", Helvetica, Arial, sans-serif;
+  }}
+  .back-link {{
+    top: max(16px, env(safe-area-inset-top)); right: max(16px, env(safe-area-inset-right));
+    display: grid; place-items: center; width: 40px; height: 40px; padding: 0;
+    font-size: 16px; text-decoration: none; transition: background 0.15s ease, color 0.15s ease;
+  }}
+  .back-link:hover {{ background: rgba(0, 0, 0, 0.85); color: #fff; }}
+  .back-link:focus-visible {{ outline: 2px solid #ff5e00; outline-offset: 3px; }}
+  .hint {{
+    left: 50%; bottom: max(16px, env(safe-area-inset-bottom)); transform: translateX(-50%);
+    white-space: nowrap; transition: opacity 0.6s ease;
+  }}
+  .hint.is-gone {{ opacity: 0; pointer-events: none; }}
+</style>
+</head>
+<body>
+<div class="stage"><iframe src="{e["embed"]}" title="{escape(e["name"])}" allow="autoplay; fullscreen"></iframe></div>
+<a class="back-link" href="../../laboratory.html" aria-label="Exit to Laboratory"><span aria-hidden="true">✕</span></a>
+<p class="hint" id="hint">{escape(e.get("hint", ""))}</p>
+<script>
+  // Scale the {w}×{h} game to the largest size that fits the window, keeping its proportions.
+  var stage = document.querySelector('.stage');
+  var frame = stage.querySelector('iframe');
+  function fit() {{
+    var k = Math.min(window.innerWidth / {w}, window.innerHeight / {h});
+    stage.style.transform = 'scale(' + k + ') translate(-50%, -50%)';
+  }}
+  fit();
+  window.addEventListener('resize', fit);
+  // Keyboard games need focus: give it to the game once it has loaded.
+  frame.addEventListener('load', function () {{ frame.focus(); }});
+  setTimeout(function () {{ document.getElementById('hint').classList.add('is-gone'); }}, 5000);
+</script>
+</body>
+</html>
+"""
+    out = ROOT / "laboratory" / e["slug"] / "index.html"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(html, encoding="utf-8")
 
 
 def build_lab_wake(e):
@@ -1184,6 +1247,8 @@ if __name__ == "__main__":
     for e in EXPERIMENTS:
         if e.get("url") and not e.get("hidden"):
             build_lab_wake(e)
+        if e.get("embed") and not e.get("hidden"):
+            build_lab_embed(e)
     for s in PROJECTS:
         build_case(s)
     print("Built", 3 + len(PROJECTS), "pages")
