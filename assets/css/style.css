@@ -389,6 +389,24 @@ main { margin-top: calc(-1 * var(--header-h)); }
 .case-sub { font-size: var(--fs-statement); font-weight: 500; line-height: 1.2; color: var(--grey); }
 .fact { grid-column: span 3; }
 .fact dd span { display: block; }
+.case-facts-m { display: none; padding: 0; }
+.case-facts-m > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--gutter);
+  padding: 0.95em 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+.case-facts-m dt {
+  flex: none;
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--grey);
+}
+.case-facts-m dd { text-align: right; font-size: 14px; line-height: 1.35; }
 .fact dt {
   margin-bottom: 0.9em;
   font-size: calc(var(--fs-small) * 0.8);
@@ -745,6 +763,10 @@ main { margin-top: calc(-1 * var(--header-h)); }
   .stat-n { font-size: var(--fs-statement); }
   .pair > :first-child, .pair > :last-child { grid-column: 1 / -1; }
   .home-pair .m5, .home-pair .m6 { aspect-ratio: 4 / 3; }
+
+  /* Project facts on phones: a short list, label on the left and value on the right, thin rules between. */
+  .grid.case-facts { display: none; }
+  .case-facts-m { display: block; margin-top: var(--gap-m); }
 }
 
 /* Scroll reveal, as on martinabraidotti.com: each block fades in and rises slightly the first time it

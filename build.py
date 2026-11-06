@@ -659,6 +659,22 @@ FIGMA_MEDIA = {
     },
 }
 
+# Project facts on phones: a short list with these four labels. Keep the values brief.
+MOBILE_FACTS = {
+    "lego-replay": {"Year": "2025", "Context": "Master’s Thesis", "Tools": "Figma, Adobe Suite",
+                    "Note": "Individual project"},
+    "logitech": {"Year": "2026", "Context": "UX Design Internship", "Tools": "Figma, Replit, Claude",
+                 "Note": "Under NDA"},
+    "opta": {"Year": "2024", "Context": "Politecnico di Milano × Italdesign", "Tools": "Figma, Arduino, ProtoPie",
+             "Note": "Team of 6"},
+    "threads-of-silk": {"Year": "2024", "Context": "Silk Museum, Como", "Tools": "Figma, Adobe Suite",
+                        "Note": "Team of 5"},
+    "mediant": {"Year": "2024", "Context": "Politecnico di Milano", "Tools": "Figma, Adobe Suite",
+                "Note": "Team of 4"},
+    "apopsi": {"Year": "2022 – 2023", "Context": "Politecnico di Milano", "Tools": "Adobe Suite, Figma",
+               "Note": "Team of 5"},
+}
+
 
 def animation(file):
     """A Figma animation: a muted looping video, cropped as in Figma."""
@@ -1203,6 +1219,8 @@ def build_case(slug):
         ("Tools", escape(facts["Tools"])),
     ]
     facts_row = "".join(f'<div class="fact"><dt>{k}</dt><dd>{v}</dd></div>' for k, v in fact_items)
+    # Phones show a short list instead: the four facts in MOBILE_FACTS.
+    facts_m = "".join(f'<div><dt>{k}</dt><dd>{escape(v)}</dd></div>' for k, v in MOBILE_FACTS[slug].items())
     opener_fig = f'<div class="story-row sec-s"><div class="grid">{media(images["opening"], alt(), "1180 / 675", cls="m12")}</div></div>'
 
     ledes = p["intro"].split("\n\n")
@@ -1214,6 +1232,7 @@ def build_case(slug):
 <section class="case-open">
   <h1 class="case-title">{escape(p["name"])}</h1>
   <dl class="grid case-facts case-facts--{len(fact_items)}">{facts_row}</dl>
+  <dl class="case-facts-m">{facts_m}</dl>
 </section>
 {opener_fig}
 <section class="grid sec-m case-overview">
