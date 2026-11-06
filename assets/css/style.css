@@ -556,13 +556,21 @@ main { margin-top: calc(-1 * var(--header-h)); }
 
 .gallery { display: flex; flex-direction: column; gap: var(--gap-m); margin-top: var(--gap-m); }
 
+/* Vimeo players: a 16:9 box with the iframe filling it. The iframe is positioned absolutely because
+   Safari on iPhone does not always resolve height: 100% inside a box sized by aspect-ratio, and the
+   player then shrinks to the default 150px. The padding keeps 16:9 on browsers without aspect-ratio. */
 .video {
-  aspect-ratio: 16 / 9;
+  position: relative;
+  width: 100%;
+  height: 0;
+  padding-top: 56.25%;
   background: var(--video);
-  display: grid;
-  place-items: center;
+  overflow: hidden;
 }
-.video iframe { width: 100%; height: 100%; border: 0; display: block; }
+@supports (aspect-ratio: 16 / 9) {
+  .video { height: auto; padding-top: 0; aspect-ratio: 16 / 9; }
+}
+.video iframe { position: absolute; inset: 0; top: 0; left: 0; width: 100%; height: 100%; border: 0; display: block; }
 
 
 /* ---------- Footer ---------- */
