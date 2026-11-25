@@ -126,6 +126,7 @@ PROJECTS = {
     "opta": {
         "name": "Opta",
         "short": "A tactile-first shared-car HMI.",
+        "lead": "Italdesign asked us to imagine the shared car of 2035. With a team of six, I designed Opta, an HMI and companion app that make a shared car feel personal, controlled through a physical knob or voice.",
         "intro": ("Italdesign asked us to imagine the shared car of 2035. Car sharing is convenient and sustainable, "
                   "but it rarely feels personal. With a team of six, I designed Opta: an HMI and companion app that "
                   "turn a shared vehicle into a personal “third space”, where users pick a mode and the car adapts "
@@ -281,6 +282,7 @@ PROJECTS = {
     "mediant": {
         "name": "MEDIANT",
         "short": "An AI assistant for medical visits.",
+        "lead": "I designed MEDIANT, an AI-powered service for Italian healthcare: a web platform that prepares visit files and flags anomalies for doctors, and an app where patients find reports, next steps and help with medical terms.",
         "intro": ("In Italian healthcare, documentation eats into visit time and turns booking a check-up into a "
                   "chaotic experience. I designed MEDIANT, an AI-powered service with two connected touchpoints: a web "
                   "platform that compiles visit files and flags anomalies in test results for doctors, and an app where "
@@ -338,6 +340,7 @@ PROJECTS = {
     "apopsi": {
         "name": "Apopsi",
         "short": "Culture clubs for Gen Z in Milan.",
+        "lead": "Milan has a rich cultural scene, but Gen Z rarely engages with it. I designed Apopsi, an app and city campaign that helps young people discover cinema, theatre and books through reviews and in-person clubs.",
         "intro": ("Milan has a rich cultural scene, but Gen Z rarely engages with it. I designed Apopsi, an app and "
                   "city campaign that helps young people discover cinema, theatre and books through reviews, posts and "
                   "in-person clubs, launched with posters, QR stickers and an Instagram page."),
@@ -400,6 +403,7 @@ PROJECTS = {
 PROJECTS["logitech"] = {
     "name": "Logitech",
     "short": "Account experience for Logitech’s gaming software.",
+    "lead": "During my three-month UX internship at Logitech G, I worked on the G HUB Account experience: research, information architecture, rapid prototyping and usability testing, with the Logitech G team.",
     "intro": "During my three-month UX internship at Logitech G, I contributed to the evolution of the G HUB Account "
              "experience, focusing on understanding player needs, improving information architecture, and exploring "
              "more intuitive ways for users to interact with their gaming ecosystem.\n\n"
@@ -659,10 +663,10 @@ FIGMA_MEDIA = {
     },
 }
 
-# Project facts on phones: a short list with these four labels. Keep the values brief.
+# Project facts, shown as a list next to the title. Keep the values brief.
 MOBILE_FACTS = {
     "lego-replay": {"Year": "2025", "Context": "Master’s Thesis", "Tools": "Figma, Adobe Suite",
-                    "Note": "Individual project"},
+                    "Note": "Master thesis project"},
     "logitech": {"Year": "2026", "Context": "UX Design Internship", "Tools": "Figma, Replit, Claude",
                  "Note": "Under NDA"},
     "opta": {"Year": "2024", "Context": "Politecnico di Milano × Italdesign", "Tools": "Figma, Arduino, ProtoPie",
@@ -1208,39 +1212,26 @@ def build_case(slug):
         f'<span class="pn-title">{escape(PROJECTS[next_slug]["name"])}</span></a>'
     )
 
-    # Opening: title, then a row of small labelled facts, then the first image as wide as the content.
-    facts = dict(p.get("facts", []))
-    fact_items = [(k, escape(facts[k])) for k in ("Context", "Role") if k in facts]
-    fact_items += [
-        ("Timeline", escape(facts["Timeline"])),
-        ("Team", escape(facts["Team"])),
-        ("My focus", escape(facts["My focus"])),
-        ("Disciplines", escape(p["tags"])),
-        ("Tools", escape(facts["Tools"])),
-    ]
-    facts_row = "".join(f'<div class="fact"><dt>{k}</dt><dd>{v}</dd></div>' for k, v in fact_items)
-    # Phones show a short list instead: the four facts in MOBILE_FACTS.
-    facts_m = "".join(f'<div><dt>{k}</dt><dd>{escape(v)}</dd></div>' for k, v in MOBILE_FACTS[slug].items())
+    # Opening: on the left the title, a subtitle and the short introduction; on the right the project
+    # facts as a list (label on the left, value on the right, thin rules between). Then the first image.
+    facts_list = "".join(f'<div><dt>{k}</dt><dd>{escape(v)}</dd></div>' for k, v in MOBILE_FACTS[slug].items())
     opener_fig = f'<div class="story-row sec-s"><div class="grid">{media(images["opening"], alt(), "1180 / 675", cls="m12")}</div></div>'
 
-    ledes = p["intro"].split("\n\n")
-    intro_html = f'<p class="case-lede">{escape(ledes[0])}</p>' + "".join(f'<p class="case-lede-more">{escape(x)}</p>' for x in ledes[1:])
+    # The short description under the title: "lead" (max 4-5 lines), or the intro when it is short already.
+    intro_html = f'<p class="case-intro-text">{escape(p.get("lead", p["intro"]))}</p>'
     if p.get("disclaimer"):
         intro_html += f'<p class="case-note">{escape(p["disclaimer"])}</p>'
     accent, tint = ACCENTS.get(slug, ("#ff5e00", "#fff3ec"))
     body = f"""<style>:root {{ --accent: {accent}; --accent-tint: {tint}; }}</style>
-<section class="case-open">
-  <h1 class="case-title">{escape(p["name"])}</h1>
-  <dl class="grid case-facts case-facts--{len(fact_items)}">{facts_row}</dl>
-  <dl class="case-facts-m">{facts_m}</dl>
-</section>
-{opener_fig}
-<section class="grid sec-m case-overview">
-  <div class="col-r">
-    <p class="label">Overview</p>
+<section class="grid case-open">
+  <div class="case-open-l">
+    <h1 class="case-title">{escape(p["name"])}</h1>
+    <p class="case-sub">{escape(p["short"].rstrip("."))}</p>
     {intro_html}
   </div>
+  <dl class="case-open-r case-facts-list">{facts_list}</dl>
 </section>
+{opener_fig}
 {image_rows("Overview")}
 {"".join(flow)}
 <section class="related page-end">

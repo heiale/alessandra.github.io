@@ -389,24 +389,6 @@ main { margin-top: calc(-1 * var(--header-h)); }
 .case-sub { font-size: var(--fs-statement); font-weight: 500; line-height: 1.2; color: var(--grey); }
 .fact { grid-column: span 3; }
 .fact dd span { display: block; }
-.case-facts-m { display: none; padding: 0; }
-.case-facts-m > div {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: var(--gutter);
-  padding: 0.95em 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
-}
-.case-facts-m dt {
-  flex: none;
-  font-family: var(--f-mono);
-  font-size: 12px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--grey);
-}
-.case-facts-m dd { text-align: right; font-size: 14px; line-height: 1.35; }
 .fact dt {
   margin-bottom: 0.9em;
   font-size: calc(var(--fs-small) * 0.8);
@@ -764,9 +746,6 @@ main { margin-top: calc(-1 * var(--header-h)); }
   .pair > :first-child, .pair > :last-child { grid-column: 1 / -1; }
   .home-pair .m5, .home-pair .m6 { aspect-ratio: 4 / 3; }
 
-  /* Project facts on phones: a short list, label on the left and value on the right, thin rules between. */
-  .grid.case-facts { display: none; }
-  .case-facts-m { display: block; margin-top: var(--gap-m); }
 }
 
 /* Scroll reveal, as on martinabraidotti.com: each block fades in and rises slightly the first time it
@@ -842,4 +821,35 @@ main { margin-top: calc(-1 * var(--header-h)); }
   .proj-card .proj-desc { font-size: clamp(14px, 0.92vw, 16px); }
   .cv-activity, .site-footer .f-contact { font-size: clamp(14px, 1.05vw, 18px); }
   .site-footer .f-bottom { font-size: clamp(11px, 0.8vw, 14px); }
+}
+
+/* Project opening: title, subtitle and introduction on the left; the facts as a list on the right
+   (label on the left in grey, value on the right, thin rules between). */
+.grid.case-open { align-items: end; row-gap: var(--gap-m); }
+.case-open-l { grid-column: 1 / 8; min-width: 0; }
+.case-open-r { grid-column: 9 / -1; min-width: 0; }
+.case-open .case-sub { margin-top: 0.4em; font-weight: 400; color: #b8b8b8; }
+/* Introduction: same type as the former Overview (first paragraph as a lead, the rest smaller) */
+.case-intro-text { margin-top: var(--gap-s); max-width: 26em; font-size: var(--fs-lead); line-height: 1.2; }
+.case-intro-text + .case-intro-text { margin-top: 1em; max-width: 34em; font-size: calc(var(--fs-story) * 1.15); line-height: 1.45; }
+.case-open .case-note { max-width: 36em; }
+.case-facts-list { margin: 0; padding: 0; border-top: 1px solid rgba(0, 0, 0, 0.12); }
+.case-facts-list > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--gutter);
+  padding: 0.9em 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+/* Labels in DM Mono uppercase and values in Helvetica, as in the former facts */
+.case-facts-list dt { flex: none; font-family: var(--f-mono); font-size: clamp(11px, 0.78vw, 13px); letter-spacing: 0.06em; text-transform: uppercase; color: var(--grey); }
+.case-facts-list dd { margin: 0; text-align: right; font-size: clamp(12px, 0.92vw, 16px); line-height: 1.5; }
+@media (max-width: 1024px) {
+  .grid.case-open > .case-open-l, .grid.case-open > .case-open-r { grid-column: 1 / -1; }
+  .case-facts-list { border-top: 0; }
+}
+@media (max-width: 599px) {
+  .case-facts-list dt { font-size: 12px; }
+  .case-facts-list dd { font-size: 14px; line-height: 1.35; }
 }
