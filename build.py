@@ -1249,17 +1249,17 @@ def build_case(slug):
 
     # The short description under the title: "lead" (max 4-5 lines), or the intro when it is short already.
     intro_html = f'<p class="case-intro-text">{escape(p.get("lead", p["intro"]))}</p>'
-    if p.get("disclaimer"):
-        intro_html += f'<p class="case-note">{escape(p["disclaimer"])}</p>'
+    note_html = f'<p class="case-note">{escape(p["disclaimer"])}</p>' if p.get("disclaimer") else ""
     accent, tint = ACCENTS.get(slug, ("#ff5e00", "#fff3ec"))
     body = f"""<style>:root {{ --accent: {accent}; --accent-tint: {tint}; }}</style>
 <section class="grid case-open">
-  <div class="case-open-l">
+  <div class="case-open-head">
     <h1 class="case-title">{escape(p["name"])}</h1>
     <p class="case-sub">{escape(p["short"].rstrip("."))}</p>
-    {intro_html}
   </div>
+  <div class="case-open-l">{intro_html}</div>
   <dl class="case-open-r case-facts-list">{facts_list}</dl>
+  {note_html}
 </section>
 {opener_fig}
 {"".join(flow)}
