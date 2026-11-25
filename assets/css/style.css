@@ -481,7 +481,7 @@ main { margin-top: calc(-1 * var(--header-h)); }
 .story-text .figure-n { font-size: var(--fs-lead); }
 .tiles { row-gap: var(--gutter); }
 .tile-gap { margin-top: var(--gutter); }
-.story-process { margin-top: var(--gap-m); }
+.story-process { margin-top: calc(var(--gap-m) / 2); }
 
 /* Key figures band: big numbers in a row, small uppercase label under each */
 .stats { row-gap: var(--gap-s); }
