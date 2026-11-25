@@ -681,6 +681,12 @@ MOBILE_FACTS = {
 }
 
 
+def number(n):
+    """A big number; a dash in a range (18–55) gets a little space on each side, so it does not touch
+    the digits at large sizes."""
+    return escape(n).replace("–", '<span class="num-dash">–</span>')
+
+
 def animation(file):
     """A Figma animation: a muted looping video, cropped as in Figma."""
     w, l, h, t = VIDEO_CROPS[file]
@@ -1100,7 +1106,7 @@ def chapter_body(blocks):
             out.append(f'<ol class="points">{"".join(items)}</ol>')
         elif isinstance(block, dict):  # key figures: big number + caption
             cells = "".join(
-                f'<div><span class="figure-n">{escape(n)}</span><span class="figure-label">{escape(label)}</span></div>'
+                f'<div><span class="figure-n">{number(n)}</span><span class="figure-label">{escape(label)}</span></div>'
                 for n, label in block["figures"]
             )
             out.append(f'<div class="figures">{cells}</div>')
@@ -1178,7 +1184,7 @@ def build_case(slug):
         if chapter.get("figures"):
             # Key figures as a band of big numbers, each with a small label underneath.
             cells = "".join(
-                f'<div class="stat"><span class="stat-n">{escape(n)}</span><span class="stat-label">{escape(label)}</span></div>'
+                f'<div class="stat"><span class="stat-n">{number(n)}</span><span class="stat-label">{escape(label)}</span></div>'
                 for n, label in chapter["figures"]
             )
             flow.append(f'<div class="grid sec-m"><div class="col-r stats-r stats-r--{len(chapter["figures"])}">{cells}</div></div>')

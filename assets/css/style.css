@@ -859,3 +859,6 @@ main { margin-top: calc(-1 * var(--header-h)); }
 @media (min-width: 1025px) {
   .grid:has(> .col-l > .story-h) { align-items: baseline; }
 }
+
+/* Big numbers: space around the dash of a range (18–55), so it does not touch the digits */
+.num-dash { margin: 0 0.12em; }
