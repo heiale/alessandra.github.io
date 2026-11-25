@@ -599,7 +599,8 @@ DESCRIPTIONS = {
 
 # Images as they are placed in the Figma file, exported with the same crop so they are never stretched.
 # "opening" is the wide image under the facts; the other keys are the section an image row follows
-# ("Overview" or a chapter title). A row is ("img", file, ratio[, caption[, width]]), where width is the
+# ("Overview" or a chapter title). "Overview" images come after the first text section, never right
+# under the opening image. A row is ("img", file, ratio[, caption[, width]]), where width is the
 # share of the column when the image is narrower than it, ("pair", file, file, ratio[, overlay]) or
 # ("video", id) for a Vimeo video. An .mp4 file is an animation from Figma, played like a GIF; an overlay
 # is an .mp4 placed on the second image of a pair (left, top, width, height in percent, corner radius).
@@ -1184,6 +1185,8 @@ def build_case(slug):
         if chapter.get("steps"):
             flow.append(f'<div class="grid sec-m"><div class="col-r">{step_flow(chapter["steps"], "Step")}</div></div>')
         flow.append(image_rows(chapter["title"]))
+    # The opening image is followed by text: "Overview" images go after the first section.
+    flow.insert(1, image_rows("Overview"))
     # Methods close the project, as a row of tags.
     methods = dict(p.get("facts", [])).get("Methods")
     if methods:
@@ -1232,7 +1235,6 @@ def build_case(slug):
   <dl class="case-open-r case-facts-list">{facts_list}</dl>
 </section>
 {opener_fig}
-{image_rows("Overview")}
 {"".join(flow)}
 <section class="related page-end">
   <div class="grid"><h2 class="related-h m12">Related Projects</h2></div>

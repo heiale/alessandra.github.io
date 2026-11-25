@@ -853,3 +853,9 @@ main { margin-top: calc(-1 * var(--header-h)); }
   .case-facts-list dt { font-size: 12px; }
   .case-facts-list dd { font-size: 14px; line-height: 1.35; }
 }
+
+/* Desktop: the section title on the left sits on the same baseline as the first line of text on the
+   right, so the large title and the smaller text read as one line. */
+@media (min-width: 1025px) {
+  .grid:has(> .col-l > .story-h) { align-items: baseline; }
+}
