@@ -196,3 +196,97 @@
   }, { passive: true });
   header.addEventListener('focusin', function () { header.classList.remove('is-hidden'); });
 })();
+
+// Intro screen: on the home page only, the first time it is opened in a visit, while its content loads.
+// The <head> script adds the "intro" class only when the screen should play. The name is there from the start; the line under it appears with the letters of
+// each word shuffled, as on the top bar on hover, then settles. A counter runs to 100, then the screen
+// breaks into squares that disappear in random order. A click or a key skips it.
+(function () {
+  var root = document.documentElement;
+  var loader = document.querySelector('.loader');
+  if (!loader || !root.classList.contains('intro')) return;
+  try { sessionStorage.setItem('aa-intro', '1'); } catch (e) {}
+
+  var SHUFFLE_FRAMES = 16;  // the top bar uses 7 frames of 45 ms; here the shuffle lasts a little longer
+  var FRAME_MS = 45;
+  var MIN_MS = 2200;   // the screen stays at least this long
+  var MAX_MS = 4500;   // and never longer than this, even if the page is still loading
+  var start = performance.now();
+  var done = false;
+
+  // The letters of each word in a random order (same as the top bar hover).
+  function shuffleWord(word) {
+    var letters = word.split('');
+    for (var i = letters.length - 1; i > 0; i--) {
+      var k = Math.floor(Math.random() * (i + 1));
+      var tmp = letters[i]; letters[i] = letters[k]; letters[k] = tmp;
+    }
+    return letters.join('');
+  }
+
+  var texts = Array.prototype.map.call(loader.querySelectorAll('[data-scramble]'), function (el) {
+    var text = el.textContent;
+    el.textContent = '';
+    return { el: el, text: text, delay: 150, shown: -1 };
+  });
+  var count = loader.querySelector('.loader-count span');
+
+  function frame(now) {
+    var t = now - start;
+    texts.forEach(function (x) {
+      var local = t - x.delay;
+      if (local < 0) return;
+      var f = Math.min(SHUFFLE_FRAMES, Math.floor(local / FRAME_MS));
+      if (f === x.shown) return;  // a new arrangement every 45 ms, as on the top bar
+      x.shown = f;
+      x.el.textContent = f < SHUFFLE_FRAMES ? x.text.split(' ').map(shuffleWord).join(' ') : x.text;
+    });
+    // The counter stops at 99 until the page is ready.
+    var pct = Math.min(ready() ? 100 : 99, Math.round(100 * Math.pow(Math.min(1, t / MIN_MS), 0.8)));
+    count.textContent = ('00' + pct).slice(-3);
+    if (!done) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  // The black background as a grid of squares, so it can break apart.
+  var mosaic = loader.querySelector('.loader-mosaic');
+  var cols = window.innerWidth < 600 ? 6 : 12;
+  var size = window.innerWidth / cols;
+  var rows = Math.ceil(window.innerHeight / size);
+  mosaic.style.gridTemplateColumns = 'repeat(' + cols + ', 1fr)';
+  mosaic.style.gridTemplateRows = 'repeat(' + rows + ', ' + size + 'px)';
+  var cells = document.createDocumentFragment();
+  for (var k = 0; k < cols * rows; k++) {
+    var cell = document.createElement('i');
+    cell.style.transitionDelay = Math.round(Math.random() * 1000) + 'ms';
+    cells.appendChild(cell);
+  }
+  mosaic.appendChild(cells);
+
+  function leave() {
+    if (done) return;
+    done = true;
+    texts.forEach(function (x) { x.el.textContent = x.text; });
+    count.textContent = '100';
+    loader.classList.add('is-leaving');
+    setTimeout(function () { root.classList.remove('intro'); loader.remove(); }, 1200);
+  }
+
+  // Ready when the page has loaded and the images in the first screen of the home are drawn.
+  var loaded = document.readyState === 'complete';
+  window.addEventListener('load', function () { loaded = true; });
+  var firstImages = Array.prototype.filter.call(document.querySelectorAll('main img'), function (img) {
+    img.loading = 'eager';
+    return img.getBoundingClientRect().top < window.innerHeight;
+  });
+  function ready() {
+    return loaded && firstImages.every(function (img) { return img.complete; });
+  }
+  (function wait() {
+    var t = performance.now() - start;
+    if ((ready() && t >= MIN_MS) || t >= MAX_MS) leave();
+    else setTimeout(wait, 100);
+  })();
+  loader.addEventListener('click', leave);
+  document.addEventListener('keydown', leave, { once: true });
+})();

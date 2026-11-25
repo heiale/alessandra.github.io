@@ -14,6 +14,9 @@ CF_ANALYTICS_TOKEN = "241b9e1f7a294751af2274a98c447858"  # Cloudflare Web Analyt
 EMAIL = "alessandra@annoni.com"
 LINKEDIN = "https://www.linkedin.com/in/alessandra-annoni-1a3aa2204/"
 
+# The line on the intro screen, below the name and offset from it.
+LOADER_LINE = "UX/UI & Product Designer"
+
 NAV = [("About", "about.html"), ("Projects", "index.html"), ("Laboratory", "laboratory.html")]
 
 PROJECTS = {
@@ -714,6 +717,13 @@ def media(file, alt, ratio, cls="", style="", overlay=None):
     return f'<div class="{classes}" style="aspect-ratio: {ratio}{"; " + style if style else ""}">{inner}</div>'
 
 
+# Shown in the <head> of the home page: decides, before anything is drawn, whether the intro screen plays.
+INTRO_HEAD = """<!-- Intro screen: on the home page only, the first time it is opened in a visit, while its content
+     loads. Skipped when the visitor prefers reduced motion. Add ?intro to the address to see it again. -->
+<script>try{if(/[?&]intro(=|&|$)/.test(location.search)||(!sessionStorage.getItem("aa-intro")&&!matchMedia("(prefers-reduced-motion: reduce)").matches))document.documentElement.classList.add("intro")}catch(e){}</script>
+"""
+
+
 def page(filename, title, body, description):
     def current(href):
         # The page itself, or Projects while reading one of the projects.
@@ -732,6 +742,17 @@ def page(filename, title, body, description):
     # first sentence of the page description.
     share_image = "assets/share/share.jpg"
     share_text = description.split(". ")[0].rstrip(".") + "."
+    # Intro screen: only on the home page, the first time it is opened in a visit, to give its images
+    # time to load.
+    is_home = filename == "index.html"
+    intro_head = INTRO_HEAD if is_home else ""
+    intro_body = f"""<div class="loader" aria-hidden="true">
+  <p class="loader-name">{NAME}</p>
+  <p class="loader-line" data-scramble>{escape(LOADER_LINE)}</p>
+  <p class="loader-count"><span>000</span></p>
+  <div class="loader-mosaic"></div>
+</div>
+""" if is_home else ""
     html = f"""<!doctype html>
 <html lang="en">
 <head>
@@ -752,11 +773,11 @@ def page(filename, title, body, description):
 <link rel="icon" href="assets/icons/favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png">
 <link rel="stylesheet" href="assets/css/style.css?v={VERSION}">
-<!-- Cloudflare Web Analytics: cookieless visit statistics -->
+{intro_head}<!-- Cloudflare Web Analytics: cookieless visit statistics -->
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{{"token": "{CF_ANALYTICS_TOKEN}"}}'></script>
 </head>
 <body>
-<header class="site-header">
+{intro_body}<header class="site-header">
   <a class="brand" href="index.html" aria-label="{NAME}"><span data-shuffle>{NAME}</span></a>
   <nav class="nav" aria-label="Main"><div class="nav-links">{links}</div><a href="mailto:{EMAIL}" data-shuffle>Let’s Talk</a></nav>
   <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="menu">Menu</button>

@@ -862,3 +862,46 @@ main { margin-top: calc(-1 * var(--header-h)); }
 
 /* Big numbers: space around the dash of a range (18–55), so it does not touch the digits */
 .num-dash { margin: 0 0.12em; }
+
+/* ---------- Intro screen ----------
+   Shown once per visit (see the script in <head>): on black, the name appears still and the line
+   below it, offset to the right, scrambles into place while a counter runs to 100, then the screen breaks
+   into squares that vanish in random order, revealing the page. */
+.loader { display: none; }
+html.intro body { overflow: hidden; }
+html.intro .loader {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  color: #fff;
+  cursor: default;
+}
+.loader-mosaic { position: absolute; inset: 0; z-index: -1; display: grid; }
+.loader-mosaic > i { background: #000; box-shadow: 0 0 0 1px #000; transition: opacity 0s; }
+.loader-mosaic:empty { background: #000; }
+.loader.is-leaving .loader-mosaic > i { opacity: 0; }
+.loader.is-leaving > :not(.loader-mosaic) { opacity: 0; transition: opacity 0.2s linear; }
+.loader-name {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin: 0;
+  white-space: nowrap;
+  font-family: var(--f-intl);
+  font-size: clamp(28px, 4.2vw, 76px);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+.loader-line, .loader-count {
+  margin: 0;
+  font-family: var(--f-mono);
+  font-size: clamp(11px, 0.95vw, 15px);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.loader-line { position: absolute; top: 62%; right: 26%; }
+@media (max-width: 599px) { .loader-line { top: 60%; right: var(--margin); } }
+.loader-count { position: absolute; right: var(--margin); bottom: calc(var(--margin) * 0.6); color: #8a8a8a; }
